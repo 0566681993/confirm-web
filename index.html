@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <title>Yêu cầu truy cập</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="supabase.js"></script>
+  <script>
+    const supabase = supabase.createClient(
+      "https://rtxdvcvzkepogytpnvsi.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU"
+    );
+  </script>
 </head>
 <body>
   <h2>Nhập email để truy cập</h2>
@@ -13,45 +18,6 @@
   <p id="status"></p>
 
   <script>
-    async function handleSubmit() {
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      if (!email) return alert('Vui lòng nhập email');
-
-      const device_id = getDeviceId();
-
-      // Kiểm tra xem email đã duyệt chưa
-      const { data, error } = await supabase
-        .from('Users')
-        .select('*')
-        .eq('Email', email)
-        .eq('Devices', device_id);
-
-      if (error) {
-        document.getElementById('status').innerText = 'Lỗi kết nối với Supabase';
-        return;
-      }
-
-      if (data.length > 0 && data[0].approved) {
-        localStorage.setItem('email', email);
-        window.location.href = 'main.html';
-      } else {
-        await supabase.from('Users').upsert([{ email, device_id, approved: false }]);
-
-        // Gửi email về cho admin
-        fetch('https://formsubmit.co/ajax/pdt681993@gmail.com', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            Email: email,
-            Device: device_id,
-            Message: 'Yêu cầu truy cập mới từ người dùng.'
-          }),
-        });
-
-        document.getElementById('status').innerText = 'Đã gửi yêu cầu. Vui lòng chờ xác nhận!';
-      }
-    }
-
     function getDeviceId() {
       let id = localStorage.getItem('device_id');
       if (!id) {
@@ -61,19 +27,66 @@
       return id;
     }
 
-    // Tự động đăng nhập nếu đã được duyệt trước đó
+    async function handleSubmit() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const device_id = getDeviceId();
+      const statusEl = document.getElementById('status');
+
+      if (!email) {
+        alert("Vui lòng nhập email");
+        return;
+      }
+
+      // Kiểm tra email + device đã được duyệt chưa
+      const { data, error } = await supabase
+        .from('Users')
+        .select('*')
+        .eq('Email', email)
+        .eq('Devices', device_id);
+
+      if (error) {
+        statusEl.innerText = 'Lỗi kết nối với Supabase';
+        return;
+      }
+
+      if (data.length > 0 && data[0].Approval === true) {
+        localStorage.setItem('email', email);
+        window.location.href = 'main.html';
+      } else {
+        // Thêm hoặc cập nhật thông tin
+        await supabase.from('Users').upsert([
+          { Email: email, Devices: device_id, Approval: false }
+        ]);
+
+        // Gửi email thông báo
+        await fetch('https://formsubmit.co/ajax/pdt681993@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Email: email,
+            Device: device_id,
+            Message: 'Yêu cầu truy cập mới từ người dùng.'
+          })
+        });
+
+        statusEl.innerText = 'Đã gửi yêu cầu. Vui lòng chờ xác nhận!';
+      }
+    }
+
+    // Tự động vào main nếu đã duyệt
     window.onload = async () => {
       const email = localStorage.getItem('email');
       const device_id = getDeviceId();
+
       if (!email) return;
 
       const { data } = await supabase
         .from('Users')
         .select('*')
-        .eq('email', email)
-        .eq('device_id', device_id);
+        .eq('Email', email)
+        .eq('Devices', device_id);
 
-      if (data.length > 0 && data[0].approved) {
+      if (data.length > 0 && data[0].Approval === true) {
         window.location.href = 'main.html';
       }
     };
