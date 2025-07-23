@@ -1,18 +1,82 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Access Request</title>
+  <title>Yêu cầu truy cập</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
 </head>
 <body>
-  <h2>Nhập Email để truy cập</h2>
-  <form id="access-form">
-    <input type="email" id="email" placeholder="Email" required />
-    <button type="submit">Gửi yêu cầu</button>
-    <label>
-      <input type="checkbox" id="remember"> Nhớ email
-    </label>
-  </form>
-  <script type="module" src="./main.js"></script>
+  <h2>Nhập email để truy cập</h2>
+  <input type="email" id="email" placeholder="Email..." />
+  <button onclick="handleSubmit()">Tiếp tục</button>
+  <p id="status"></p>
+
+  <script>
+    async function handleSubmit() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      if (!email) return alert('Vui lòng nhập email');
+
+      const device_id = getDeviceId();
+
+      // Kiểm tra xem email đã duyệt chưa
+      const { data, error } = await supabase
+        .from('Users')
+        .select('*')
+        .eq('email', email)
+        .eq('device_id', device_id);
+
+      if (error) {
+        document.getElementById('status').innerText = 'Lỗi kết nối với Supabase';
+        return;
+      }
+
+      if (data.length > 0 && data[0].approved) {
+        localStorage.setItem('email', email);
+        window.location.href = 'main.html';
+      } else {
+        await supabase.from('Users').upsert([{ email, device_id, approved: false }]);
+
+        // Gửi email về cho admin
+        fetch('https://formsubmit.co/ajax/pdt681993@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Email: email,
+            Device: device_id,
+            Message: 'Yêu cầu truy cập mới từ người dùng.'
+          }),
+        });
+
+        document.getElementById('status').innerText = 'Đã gửi yêu cầu. Vui lòng chờ xác nhận!';
+      }
+    }
+
+    function getDeviceId() {
+      let id = localStorage.getItem('device_id');
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('device_id', id);
+      }
+      return id;
+    }
+
+    // Tự động đăng nhập nếu đã được duyệt trước đó
+    window.onload = async () => {
+      const email = localStorage.getItem('email');
+      const device_id = getDeviceId();
+      if (!email) return;
+
+      const { data } = await supabase
+        .from('Users')
+        .select('*')
+        .eq('email', email)
+        .eq('device_id', device_id);
+
+      if (data.length > 0 && data[0].approved) {
+        window.location.href = 'main.html';
+      }
+    };
+  </script>
 </body>
 </html>
