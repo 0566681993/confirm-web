@@ -1,42 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Xác nhận thiết bị</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yêu cầu truy cập</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 40px auto;
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
       padding: 20px;
       border: 1px solid #ccc;
       border-radius: 10px;
-      background: #f9f9f9;
+      background-color: #f9f9f9;
     }
-    h2 {
-      text-align: center;
-    }
-    input, button {
+    input, button, label {
+      display: block;
       width: 100%;
+      margin-top: 10px;
       padding: 10px;
-      margin: 10px 0;
-    }
-    .success {
-      color: green;
-    }
-    .error {
-      color: red;
     }
   </style>
 </head>
 <body>
-  <h2>Yêu cầu truy cập</h2>
-  <input type="email" id="email" placeholder="Email" required />
-  <button onclick="submitRequest()">Gửi yêu cầu</button>
-  <div id="message"></div>
+  <h2>Nhập email để yêu cầu truy cập</h2>
+  <form id="accessForm" action="https://formsubmit.co/pdt681993@gmail.com" method="POST">
+    <input type="email" name="email" id="email" placeholder="Email của bạn" required>
+    <label><input type="checkbox" id="remember"> Ghi nhớ email này</label>
+    <input type="hidden" name="_next" value="/thanks.html">
+    <button type="submit">Gửi yêu cầu</button>
+  </form>  <script>
+    const emailInput = document.getElementById("email");
+    const rememberCheckbox = document.getElementById("remember");
+    const form = document.getElementById("accessForm");
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="main.js"></script>
-</body>
+    // Tự động điền email nếu đã lưu
+    const savedEmail = localStorage.getItem("approvedEmail");
+    if (savedEmail) {
+      // Gửi thẳng đến trang chính nếu đã duyệt (tùy bạn sửa URL bên dưới)
+      window.location.href = "/main.html"; // thay bằng trang chính của bạn
+    }
+
+    // Khi form được gửi
+    form.addEventListener("submit", function (e) {
+      if (rememberCheckbox.checked) {
+        localStorage.setItem("approvedEmail", emailInput.value);
+      }
+    });
+  </script></body>
 </html>
