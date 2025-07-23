@@ -13,7 +13,6 @@ function getDeviceId() {
 }
 
 async function submitRequest() {
-  const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const deviceId = getDeviceId();
   const messageDiv = document.getElementById("message");
