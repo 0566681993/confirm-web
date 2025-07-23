@@ -1,50 +1,40 @@
-<!DOCTYPE html><html lang="vi">
+// index.html
+
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yêu cầu truy cập</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      max-width: 400px;
-      margin: 50px auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-    }
-    input, button, label {
-      display: block;
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Request</title>
 </head>
 <body>
-  <h2>Nhập email để yêu cầu truy cập</h2>
-  <form id="accessForm" action="https://formsubmit.co/pdt681993@gmail.com" method="POST">
-    <input type="email" name="email" id="email" placeholder="Email của bạn" required>
-    <label><input type="checkbox" id="remember"> Ghi nhớ email này</label>
-    <input type="hidden" name="_next" value="/thanks.html">
+  <h2>Nhập Email để truy cập</h2>
+  <form id="access-form">
+    <input type="email" id="email" placeholder="Email" required />
     <button type="submit">Gửi yêu cầu</button>
-  </form>  <script>
-    const emailInput = document.getElementById("email");
-    const rememberCheckbox = document.getElementById("remember");
-    const form = document.getElementById("accessForm");
+    <label>
+      <input type="checkbox" id="remember"> Nhớ email
+    </label>
+  </form>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>// main.js import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-    // Tự động điền email nếu đã lưu
-    const savedEmail = localStorage.getItem("approvedEmail");
-    if (savedEmail) {
-      // Gửi thẳng đến trang chính nếu đã duyệt (tùy bạn sửa URL bên dưới)
-      window.location.href = "/main.html"; // thay bằng trang chính của bạn
-    }
+const supabase = createClient( "https://rtxdvcvzkepogytpnvsi.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU" );
 
-    // Khi form được gửi
-    form.addEventListener("submit", function (e) {
-      if (rememberCheckbox.checked) {
-        localStorage.setItem("approvedEmail", emailInput.value);
-      }
-    });
-  </script></body>
-</html>
+const form = document.getElementById("access-form"); const emailInput = document.getElementById("email"); const rememberCheckbox = document.getElementById("remember");
+
+const deviceId = getDeviceId();
+
+form.addEventListener("submit", async (e) => { e.preventDefault(); const email = emailInput.value.trim().toLowerCase(); if (!email) return alert("Vui lòng nhập email");
+
+// Lưu email nếu được chọn nhớ if (rememberCheckbox.checked) { localStorage.setItem("rememberedEmail", email); }
+
+const { data, error } = await supabase.from("User").select("*").eq("Email", email); if (error) return alert("Lỗi kết nối Supabase");
+
+const user = data[0]; if (user && user.Approval === true && user.Devices === deviceId) { window.location.href = "main.html"; } else { await supabase.from("User").upsert({ Email: email, Devices: deviceId, Approval: false }); sendRequestEmail(email, deviceId); alert("Yêu cầu đã được gửi. Vui lòng chờ admin duyệt."); } });
+
+function getDeviceId() { let id = localStorage.getItem("device_id"); if (!id) { id = crypto.randomUUID(); localStorage.setItem("device_id", id); } return id; }
+
+function sendRequestEmail(email, deviceId) { // ⚠️ Tùy chọn: Tích hợp với EmailJS hoặc webhook server tại đây fetch("https://formspree.io/f/your-form-id", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, deviceId }) }); }
+
+// Auto fill nếu email được nhớ const remembered = localStorage.getItem("rememberedEmail"); if (remembered) { emailInput.value = remembered; }
