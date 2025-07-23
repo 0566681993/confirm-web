@@ -18,7 +18,7 @@ async function submitRequest() {
   const messageDiv = document.getElementById("message");
   messageDiv.innerHTML = "";
 
-  if (!name || !email) {
+  if (!email) {
     messageDiv.innerHTML = "<p class='error'>Vui lòng nhập đầy đủ thông tin.</p>";
     return;
   }
