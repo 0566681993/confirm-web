@@ -23,8 +23,8 @@
       const { data, error } = await supabase
         .from('Users')
         .select('*')
-        .eq('email', email)
-        .eq('device_id', device_id);
+        .eq('Email', email)
+        .eq('Devices', device_id);
 
       if (error) {
         document.getElementById('status').innerText = 'Lỗi kết nối với Supabase';
