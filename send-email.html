@@ -2,15 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Gửi yêu cầu truy cập</title>
+  <title>Yêu cầu truy cập</title>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
   <script>
-    emailjs.init("user_IpD7DlNKApqU2fsAbAZgS"); // EmailJS user ID bạn đã cấp
+    emailjs.init("user_IpD7DlNKApqU2fsAbAZgS");
 
     const supabaseUrl = "https://rtxdvcvzkepogytpnvsi.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU";
-
-    let folderName = "";
 
     function getDeviceId() {
       let id = localStorage.getItem("device_id");
@@ -21,23 +19,19 @@
       return id;
     }
 
-    function selectFolder(name) {
-      folderName = name;
-      document.getElementById("status").textContent = `📁 Đã chọn thư mục: ${name}`;
-    }
-
-    async function sendEmail() {
+    async function sendRequest() {
       const email = document.getElementById("email").value.trim();
       const deviceId = getDeviceId();
+      const folderName = window.folderName || "(Không có)";
       const statusEl = document.getElementById("status");
 
-      if (!email || !folderName) {
-        alert("Vui lòng nhập email và chọn thư mục.");
+      if (!email) {
+        alert("Vui lòng nhập email.");
         return;
       }
 
       try {
-        // Kiểm tra dữ liệu đã tồn tại chưa
+        // Kiểm tra xem email + device_id đã tồn tại chưa
         const checkUrl = `${supabaseUrl}/rest/v1/approved_access?email=eq.${encodeURIComponent(email)}&device_id=eq.${deviceId}`;
         const checkRes = await fetch(checkUrl, {
           headers: {
@@ -47,21 +41,21 @@
           }
         });
 
-        const existing = await checkRes.json();
-        if (existing.length > 0) {
-          statusEl.textContent = "⚠️ Email và thiết bị đã tồn tại trong hệ thống.";
+        const exists = await checkRes.json();
+        if (exists.length > 0) {
+          statusEl.textContent = "⚠️ Email và thiết bị đã tồn tại.";
           return;
         }
 
-        // Gửi email thông báo tới admin
+        // Gửi email thông báo
         await emailjs.send("service_0g5u3lf", "template_4o7tcze", {
-          email: email,
+          email,
           device_id: deviceId,
           folder_name: folderName
         });
 
         // Ghi vào Supabase
-        const res = await fetch(`${supabaseUrl}/rest/v1/approved_access`, {
+        const insertRes = await fetch(`${supabaseUrl}/rest/v1/approved_access`, {
           method: "POST",
           headers: {
             apikey: supabaseKey,
@@ -69,38 +63,29 @@
             "Content-Type": "application/json",
             Prefer: "return=minimal"
           },
-          body: JSON.stringify({
-            email: email,
-            device_id: deviceId
-          })
+          body: JSON.stringify({ email, device_id: deviceId })
         });
 
-        if (res.ok) {
-          statusEl.textContent = "✅ Đã gửi yêu cầu và ghi thành công!";
-        } else {
-          const errorText = await res.text();
-          throw new Error(errorText);
+        if (!insertRes.ok) {
+          const errText = await insertRes.text();
+          console.error("❌ Ghi vào Supabase lỗi:", errText);
+          statusEl.textContent = "❌ Gửi yêu cầu thất bại.";
+          return;
         }
 
+        statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
+
       } catch (err) {
-        console.error("Lỗi:", err);
+        console.error("Lỗi khi gửi:", err);
         statusEl.textContent = "❌ Gửi yêu cầu thất bại.";
       }
     }
   </script>
 </head>
 <body>
-  <h2>📁 Chọn thư mục cần truy cập:</h2>
-  <ul>
-    <li><a href="#" onclick="selectFolder('Thư mục A')">📂 Thư mục A</a></li>
-    <li><a href="#" onclick="selectFolder('Thư mục B')">📂 Thư mục B</a></li>
-    <li><a href="#" onclick="selectFolder('Thư mục C')">📂 Thư mục C</a></li>
-  </ul>
-
   <h2>📩 Nhập email để gửi yêu cầu:</h2>
-  <input type="email" id="email" placeholder="Nhập email..." style="width: 300px; padding: 5px;" />
-  <button onclick="sendEmail()" style="padding: 5px 15px; margin-left: 10px;">Gửi yêu cầu</button>
-
-  <p id="status" style="margin-top: 20px; color: green;"></p>
+  <input type="email" id="email" placeholder="Email..." style="padding:5px;width:300px" />
+  <button onclick="sendRequest()" style="padding:5px 15px;margin-left:10px;">Gửi yêu cầu</button>
+  <p id="status" style="margin-top:20px; color: green;"></p>
 </body>
 </html>
