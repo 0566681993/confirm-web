@@ -2,119 +2,127 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Danh sách thư mục Google Drive</title>
+  <title>Trình duyệt Google Drive</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    h2 {
-      font-size: 28px;
-      color: #333;
-    }
-
-    ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
-
-    li {
-      margin-bottom: 15px;
-    }
-
-    a {
-      text-decoration: none;
-      font-size: 22px;
-      color: #0066cc;
-      font-weight: bold;
-      transition: color 0.3s;
-      cursor: pointer;
-    }
-
-    a:hover {
-      color: #ff6600;
-    }
-
-    .children {
-      margin-left: 20px;
-      font-size: 18px;
-    }
+    body { font-family: Arial; padding: 20px; }
+    h2 { font-size: 28px; }
+    ul { list-style-type: none; padding-left: 20px; }
+    li { margin: 8px 0; }
+    a.folder { font-size: 20px; color: #0066cc; font-weight: bold; cursor: pointer; }
+    a.folder:hover { color: #ff6600; }
+    .children { margin-left: 20px; font-size: 16px; display: none; }
+    .file-link { text-decoration: none; color: green; }
+    .file-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h2>📁 Chọn thư mục để xem nội dung:</h2>
+  <h2>📁 Thư mục Google Drive</h2>
   <ul id="folderList">Đang tải...</ul>
 
   <script>
     const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
-    const PARENT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
+    const ROOT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
 
-    async function listDriveFolders() {
+    async function fetchFolderContents(folderId) {
+      const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.files || [];
+    }
+
+    function createFolderItem(name, folderId) {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      link.className = 'folder';
+      link.textContent = `📂 ${name}`;
+      link.href = "#";
+
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'children';
+
+      let loaded = false;
+
+      link.onclick = async () => {
+        if (childrenDiv.style.display === 'none') {
+          childrenDiv.style.display = 'block';
+          if (!loaded) {
+            childrenDiv.innerHTML = '⏳ Đang tải...';
+            const items = await fetchFolderContents(folderId);
+            childrenDiv.innerHTML = '';
+
+            if (items.length === 0) {
+              childrenDiv.innerHTML = '<i>Không có dữ liệu.</i>';
+            } else {
+              const subUl = document.createElement('ul');
+              items.forEach(item => {
+                if (item.mimeType === 'application/vnd.google-apps.folder') {
+                  subUl.appendChild(createFolderItem(item.name, item.id));
+                } else {
+                  const fileLi = document.createElement('li');
+                  const viewUrl = getFileViewerURL(item);
+                  const a = document.createElement('a');
+                  a.textContent = `📄 ${item.name}`;
+                  a.href = viewUrl;
+                  a.target = '_blank';
+                  a.className = 'file-link';
+                  fileLi.appendChild(a);
+                  subUl.appendChild(fileLi);
+                }
+              });
+              childrenDiv.appendChild(subUl);
+            }
+
+            loaded = true;
+          }
+        } else {
+          childrenDiv.style.display = 'none';
+        }
+      };
+
+      li.appendChild(link);
+      li.appendChild(childrenDiv);
+      return li;
+    }
+
+    function getFileViewerURL(file) {
+      const fileId = file.id;
+      const name = file.name.toLowerCase();
+
+      if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+
+      return `https://drive.google.com/file/d/${fileId}/view`;
+    }
+
+    async function init() {
       const folderList = document.getElementById('folderList');
       folderList.innerHTML = 'Đang tải...';
 
-      const url = `https://www.googleapis.com/drive/v3/files?q='${PARENT_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&key=${API_KEY}&fields=files(id,name)`;
+      const folders = await fetchFolderContents(ROOT_FOLDER_ID);
+      folderList.innerHTML = '';
 
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        folderList.innerHTML = '';
-
-        if (!data.files || data.files.length === 0) {
-          folderList.innerHTML = '<li>Không có thư mục nào được tìm thấy.</li>';
-          return;
-        }
-
-        data.files.forEach(folder => {
-          const li = document.createElement('li');
-          const link = document.createElement('a');
-          link.href = "#";
-          link.textContent = `📂 ${folder.name}`;
-
-          const childrenDiv = document.createElement('div');
-          childrenDiv.className = 'children';
-          childrenDiv.textContent = '⏳ Bấm để tải nội dung...';
-          childrenDiv.style.display = 'none';
-
-          link.onclick = async () => {
-            // Toggle hiển thị
-            if (childrenDiv.style.display === 'none') {
-              childrenDiv.style.display = 'block';
-              childrenDiv.textContent = '⏳ Đang tải...';
-
-              // Gọi API lấy danh sách con
-              const subUrl = `https://www.googleapis.com/drive/v3/files?q='${folder.id}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
-              const res = await fetch(subUrl);
-              const subData = await res.json();
-
-              if (!subData.files || subData.files.length === 0) {
-                childrenDiv.innerHTML = '<i>Không có file hoặc thư mục con.</i>';
-              } else {
-                const html = subData.files.map(f =>
-                  f.mimeType === 'application/vnd.google-apps.folder'
-                    ? `📁 ${f.name}`
-                    : `📄 ${f.name}`
-                ).map(item => `<div>${item}</div>`).join('');
-                childrenDiv.innerHTML = html;
-              }
-            } else {
-              // Ẩn lại nếu đã hiện
-              childrenDiv.style.display = 'none';
-            }
-          };
-
-          li.appendChild(link);
-          li.appendChild(childrenDiv);
-          folderList.appendChild(li);
+      if (folders.length === 0) {
+        folderList.innerHTML = '<li>Không có thư mục nào.</li>';
+      } else {
+        folders.forEach(item => {
+          if (item.mimeType === 'application/vnd.google-apps.folder') {
+            folderList.appendChild(createFolderItem(item.name, item.id));
+          } else {
+            const fileLi = document.createElement('li');
+            const a = document.createElement('a');
+            a.textContent = `📄 ${item.name}`;
+            a.href = getFileViewerURL(item);
+            a.target = '_blank';
+            a.className = 'file-link';
+            fileLi.appendChild(a);
+            folderList.appendChild(fileLi);
+          }
         });
-      } catch (err) {
-        folderList.innerHTML = `<li>Lỗi khi tải thư mục: ${err.message}</li>`;
       }
     }
 
-    listDriveFolders();
+    init();
   </script>
 </body>
 </html>
