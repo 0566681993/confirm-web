@@ -234,7 +234,7 @@
                       document.getElementById('fileViewer').style.display = 'block';
                       document.getElementById('fileFrame').src = getFileViewerURL(item);
                       document.getElementById('navigationButtons').innerHTML = `
-                        <button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>
+                        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                       `;
                     }
                   };
@@ -310,9 +310,9 @@
 
       document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
       document.getElementById('navigationButtons').innerHTML = `
-        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)">Trước</button>
-        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">Tiếp</button>
-        <button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)">"<"</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">">"</button>
+        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
       `;
     }
 
