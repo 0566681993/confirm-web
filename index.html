@@ -1,48 +1,67 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>PDF Chỉ đọc bảo vệ</title>
+  <meta charset="UTF-8">
+  <title>Trình duyệt thư mục</title>
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      user-select: none;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-    }
+    body { font-family: Arial; margin: 2em; }
+    ul { list-style: none; padding-left: 1em; }
+    li { margin: 5px 0; cursor: pointer; }
+    .folder::before { content: "📁 "; }
+    .file::before { content: "📄 "; }
   </style>
 </head>
-<body oncontextmenu="return false" onkeydown="return false" onmousedown="return false" onselectstart="return false">
-<canvas id="pdf-canvas"></canvas>
-<script src="pdf.js"></script>
-<script>
-  const url = 'yourfile.pdf';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.js';
-  const canvas = document.getElementById('pdf-canvas');
-  const ctx = canvas.getContext('2d');
-  pdfjsLib.getDocument(url).promise.then(pdf => {
-    const total = pdf.numPages;
-    const renderPage = function(pageNum) {
-      pdf.getPage(pageNum).then(page => {
-        const viewport = page.getViewport({ scale: 1.5 });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-          if (pageNum < total) renderPage(pageNum + 1);
+<body>
+  <h2>📂 Trình duyệt thư mục</h2>
+  <div id="browser"></div>
+
+  <script>
+    const api = '/api/list?path=';
+
+    async function loadFolder(path, container) {
+      const res = await fetch(api + encodeURIComponent(path));
+      const data = await res.json();
+
+      const ul = document.createElement('ul');
+
+      // Thư mục con
+      for (const folder of data.folders) {
+        const li = document.createElement('li');
+        li.textContent = folder;
+        li.classList.add('folder');
+        li.addEventListener('click', () => {
+          li.innerHTML += ' ⏳';
+          loadFolder(path + '/' + folder, li);
+          li.removeEventListener('click', arguments.callee);
         });
-      });
-    };
-    renderPage(1);
-  });
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('keydown', e => {
-    if (e.ctrlKey || e.key === 'F12' || e.key === 'u' || e.key === 's') e.preventDefault();
-  });
-  document.addEventListener('mousedown', e => e.preventDefault());
-  document.addEventListener('selectstart', e => e.preventDefault());
-</script>
+        ul.appendChild(li);
+      }
+
+      // File
+      for (const file of data.files) {
+        const li = document.createElement('li');
+        li.textContent = file;
+        li.classList.add('file');
+        li.addEventListener('click', () => openFile(path + '/' + file));
+        ul.appendChild(li);
+      }
+
+      container.appendChild(ul);
+    }
+
+    function openFile(fullPath) {
+      const ext = fullPath.split('.').pop().toLowerCase();
+      if (ext === 'pdf') {
+        window.open(`viewer.html?file=${encodeURIComponent(fullPath)}`, '_blank');
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        window.open(fullPath, '_blank');
+      } else {
+        alert('Không hỗ trợ định dạng này');
+      }
+    }
+
+    // Load gốc
+    loadFolder('', document.getElementById('browser'));
+  </script>
 </body>
 </html>
