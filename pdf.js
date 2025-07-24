@@ -1,0 +1,1 @@
+// PDF.js stub file placeholder
