@@ -6,6 +6,8 @@
 </head>
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
+  <p id="folderInfo"></p>
+
   <input type="email" id="email" placeholder="Nhập email..." />
   <button onclick="sendEmail()">Gửi</button>
   <p id="status"></p>
@@ -13,7 +15,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script>
     // Khởi tạo EmailJS
-    emailjs.init("bNyTDo7SAT7JYMWH1"); // public key
+    emailjs.init("bNyTDo7SAT7JYMWH1");
+
+    // Lấy thông tin thư mục từ URL
+    const params = new URLSearchParams(window.location.search);
+    const folderName = decodeURIComponent(params.get("name") || "Không rõ thư mục");
+
+    // Hiển thị thư mục đang chọn
+    document.getElementById("folderInfo").textContent = `📁 Thư mục đang chọn: ${folderName}`;
 
     // Lấy ID thiết bị
     function getDeviceId() {
@@ -38,7 +47,8 @@
 
       emailjs.send("0566681993", "0376425426", {
         email: email,
-        device_id: deviceId
+        device_id: deviceId,
+        folder_name: folderName
       }).then(() => {
         statusEl.innerText = "✅ Đã gửi yêu cầu thành công!";
       }).catch((error) => {
