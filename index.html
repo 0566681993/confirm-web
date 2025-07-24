@@ -1,51 +1,48 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Gửi Email bằng EmailJS</title>
+  <meta charset="UTF-8" />
+  <title>Danh sách thư mục Google Drive</title>
 </head>
 <body>
-  <h3>Gửi yêu cầu truy cập</h3>
-  <input type="email" id="email" placeholder="Nhập email..." />
-  <button onclick="sendEmail()">Gửi</button>
-  <p id="status"></p>
+  <h2>Chọn thư mục để gửi yêu cầu:</h2>
+  <ul id="folderList">Đang tải...</ul>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script>
-    // Khởi tạo EmailJS
-    emailjs.init("bNyTDo7SAT7JYMWH1"); // public key
+    const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
+    const PARENT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi'; // Thư mục bạn đã công khai
 
-    // Lấy ID thiết bị
-    function getDeviceId() {
-      let id = localStorage.getItem("device_id");
-      if (!id) {
-        id = crypto.randomUUID();
-        localStorage.setItem("device_id", id);
+    async function listDriveFolders() {
+      const folderList = document.getElementById('folderList');
+      folderList.innerHTML = 'Đang tải...';
+
+      const url = `https://www.googleapis.com/drive/v3/files?q='${PARENT_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&key=${API_KEY}&fields=files(id,name)`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        folderList.innerHTML = ''; // Xóa trạng thái "Đang tải..."
+
+        if (!data.files || data.files.length === 0) {
+          folderList.innerHTML = '<li>Không có thư mục nào được tìm thấy.</li>';
+          return;
+        }
+
+        data.files.forEach(folder => {
+          const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = `Send-email.html?folder=${folder.id}&name=${encodeURIComponent(folder.name)}`;
+          link.textContent = folder.name;
+          li.appendChild(link);
+          folderList.appendChild(li);
+        });
+      } catch (err) {
+        folderList.innerHTML = `<li>Lỗi khi tải thư mục: ${err.message}</li>`;
       }
-      return id;
     }
 
-    // Gửi email
-    function sendEmail() {
-      const email = document.getElementById("email").value.trim();
-      const deviceId = getDeviceId();
-      const statusEl = document.getElementById("status");
-
-      if (!email) {
-        alert("Vui lòng nhập email.");
-        return;
-      }
-
-      emailjs.send("0566681993", "0376425426", {
-        email: email,
-        device_id: deviceId
-      }).then(() => {
-        statusEl.innerText = "✅ Đã gửi yêu cầu thành công!";
-      }).catch((error) => {
-        console.error("Lỗi gửi email:", error);
-        statusEl.innerText = "❌ Gửi thất bại. Kiểm tra cấu hình EmailJS.";
-      });
-    }
+    listDriveFolders();
   </script>
 </body>
 </html>
