@@ -77,15 +77,19 @@
     #fileFrame {
       border: none;
       width: 100%;
-      height: calc(100% - 70px); /* Để lại không gian cho tiêu đề và nút điều hướng */
+      height: calc(100% - 90px); /* Để lại không gian cho tiêu đề và nút */
+      display: block;
     }
 
     .navigation {
-      position: absolute;
+      position: fixed;
       bottom: 10px;
       left: 0;
       right: 0;
       text-align: center;
+      background: rgba(0, 0, 0, 0.7); /* Nền tối để nút dễ thấy */
+      padding: 10px;
+      z-index: 1001; /* Đảm bảo nút ở trên iframe */
     }
 
     .navigation button {
@@ -293,10 +297,10 @@
 
         document.getElementById('fileViewer').style.display = 'block';
         document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
-        document.getElementById('viewerTitle').textContent = `Xem Ảnh (${currentImageIndex + 1}/${currentImages.length})`;
+        document.getElementById('viewerTitle').textContent = `Xem Ảnh (${currentImageIndex + 1}/${currentImages.length}) - ${currentImages[currentImageIndex].name}`;
         document.getElementById('navigationButtons').innerHTML = `
-          <button onclick="navigateImage(-1)">Trước</button>
-          <button onclick="navigateImage(1)">Tiếp</button>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)">Trước</button>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">Tiếp</button>
           <button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>
         `;
       } catch (error) {
@@ -320,10 +324,10 @@
       }
 
       document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
-      document.getElementById('viewerTitle').textContent = `Xem Ảnh (${currentImageIndex + 1}/${currentImages.length})`;
+      document.getElementById('viewerTitle').textContent = `Xem Ảnh (${currentImageIndex + 1}/${currentImages.length}) - ${currentImages[currentImageIndex].name}`;
       document.getElementById('navigationButtons').innerHTML = `
-        <button onclick="navigateImage(-1)">Trước</button>
-        <button onclick="navigateImage(1)">Tiếp</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)">Trước</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">Tiếp</button>
         <button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>
       `;
     }
@@ -364,7 +368,7 @@
               } else {
                 document.getElementById('fileViewer').style.display = 'block';
                 document.getElementById('fileFrame').src = getFileViewerURL(item);
-                document.getElementById('viewerTitle').textContent = 'Xem PDF';
+                document.getElementById('viewerTitle').textContent = `Xem PDF - ${item.name}`;
                 document.getElementById('navigationButtons').innerHTML = `
                   <button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>
                 `;
