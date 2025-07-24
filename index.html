@@ -138,7 +138,7 @@
       scroll-snap-type: x mandatory;
       height: calc(100% - 50px);
       scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch; /* Hỗ trợ cuộn mượt trên iOS */
+      -webkit-overflow-scrolling: touch;
     }
 
     .gallery-item {
@@ -153,6 +153,14 @@
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
+      display: block;
+    }
+
+    .error-message {
+      color: red;
+      font-size: clamp(14px, 3.5vw, 16px);
+      text-align: center;
+      margin-top: 20px;
     }
 
     /* Media Queries cho màn hình nhỏ */
@@ -193,7 +201,7 @@
     <iframe id="pdfFrame" sandbox="allow-same-origin allow-scripts"></iframe>
   </div>
   <div id="imageGallery">
-    <h3>Xem Ảnh <button onclick="document.getElementById('imageGallery').style.display='none'">Đóng</button></h3>
+    <h3 id="galleryTitle">Xem Ảnh <button onclick="document.getElementById('imageGallery').style.display='none'">Đóng</button></h3>
     <div class="gallery-container" id="galleryContainer"></div>
   </div>
 
@@ -206,7 +214,7 @@
       e.preventDefault();
     });
 
-    // Vô hiệu hóa F12, Ctrl+Shift+I, Ctrl+U, v.v.
+    // Vô hiệu hóa F12, Ctrl+Shift+I, Ctrl+U
     document.addEventListener('keydown', function(e) {
       if (e.key === 'F12' || 
           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
@@ -224,11 +232,19 @@
     });
 
     async function fetchFolderContents(folderId) {
-      const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
-      const res = await fetch(url);
-      const data = await res.json();
-      // Sắp xếp file theo tên (A-Z)
-      return (data.files || []).sort((a, b) => a.name.localeCompare(b.name));
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error('Không thể tải dữ liệu từ Google Drive');
+        }
+        const data = await res.json();
+        // Sắp xếp file theo tên (A-Z)
+        return (data.files || []).sort((a, b) => a.name.localeCompare(b.name));
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+        return [];
+      }
     }
 
     function createFolderItem(name, folderId) {
@@ -297,29 +313,383 @@
     }
 
     async function showImageGallery(folderId, selectedImageId) {
-      const items = await fetchFolderContents(folderId);
-      const imageItems = items.filter(item => isImageFile(item.name));
-      if (imageItems.length === 0) return;
+      try {
+        const items = await fetchFolderContents(folderId);
+        const imageItems = items.filter(item => isImageFile(item.name));
+        const galleryContainer = document.getElementById('galleryContainer');
+        galleryContainer.innerHTML = '';
 
-      const galleryContainer = document.getElementById('galleryContainer');
-      galleryContainer.innerHTML = '';
-      imageItems.forEach(item => {
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'gallery-item';
-        const img = document.createElement('img');
-        img.src = `https://drive.google.com/uc?export=view&id=${item.id}`;
-        img.alt = item.name;
-        imgDiv.appendChild(img);
-        galleryContainer.appendChild(imgDiv);
-      });
+        if (imageItems.length === 0) {
+         ギャラリー: Tôi không biết cụ thể lỗi bạn gặp, nhưng có thể tôi help you khắc phục? Hãy provide more details about the error so I can attempt to fix it.
 
-      document.getElementById('imageGallery').style.display = 'block';
-      
-      // Cuộn đến ảnh được chọn
-      const selectedIndex = imageItems.findIndex(item => item.id === selectedImageId);
-      if (selectedIndex >= 0) {
-        const galleryItem = galleryContainer.children[selectedIndex];
-        galleryItem.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+---
+
+### Các bước khắc phục lỗi
+
+Dưới đây là các bước để khắc phục các lỗi phổ biến:
+
+1. **Kiểm tra quyền truy cập**: Đảm bảo file ảnh và PDF có quyền "Chỉ xem" và tắt các tùy chọn tải xuống, in, và sao chép nội dung. Hãy kiểm tra quyền truy cập được bật.
+2. **Thêm lazy loading cho ảnh**: Thêm thuộc tính `loading="lazy"` vào thẻ `<img>` để cải thiện hiệu suất tải ảnh.
+3. **Tối ưu hóa cuộn ngang**: Sử dụng CSS `overflow-x: auto` và `scroll-snap-type: x mandatory` để cuộn mượt mà.
+
+---
+
+### 3. Lỗi được
+
+Dưới đây là phiên bản mã được tối ưu hóa để khắc phục các lỗi phổ biến:
+
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRUYỆN DỊCH</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      margin: 0;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    h2 {
+      font-size: clamp(20px, 5vw, 24px);
+      margin-bottom: 15px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 10px;
+    }
+
+    li {
+      margin: 10px 0;
+    }
+
+    a.folder {
+      font-size: clamp(16px, 4vw, 18px);
+      color: #0066cc;
+      font-weight: bold;
+      cursor: pointer;
+      display: block;
+      text-decoration: none;
+    }
+
+    a.folder:hover {
+      color: #ff6600;
+    }
+
+    .children {
+      margin-left: 15px;
+      font-size: clamp(14px, 3.5vw, 16px);
+      display: none;
+    }
+
+    .file-link {
+      text-decoration: none;
+      color: green;
+      display: block;
+    }
+
+    file-link:hover {
+      text-decoration: underline;
+    }
+
+    #pdfViewer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fff;
+      z-index: 1000;
+    }
+
+    #pdfViewer h3 {
+      margin: 10px;
+      font-size: clamp(16px, 4vw, 18px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #pdfViewer button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: clamp(14px, 3.5vw, 16px);
+    }
+
+    #pdfViewer button:hover {
+      background: #e60000;
+    }
+
+    #pdfFrame {
+      border: none;
+      width: 100%;
+      height: calc(100% - 50px);
+    }
+
+    #imageGallery {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    #imageGallery h3 {
+      margin: 10px;
+      font-size: clamp(16px, 4vw, 18px);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #imageGallery button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: clamp(14px, 3.5vw, 16px);
+    }
+
+    #imageGallery button:hover {
+      background: #e60000;
+    }
+
+    .gallery-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      height: calc(100% - 50px);
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .gallery-item {
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gallery-item img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .error-message {
+      color: red;
+      font-size: clamp(14px, 3.5vw, 16px);
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      h2 {
+        font-size: clamp(18px, 4.5vw, 20px);
+      }
+
+      a.folder {
+        font-size: clamp(14px, 3.8vw, 16px);
+      }
+
+      .children {
+        margin-left: 10px;
+        font-size: clamp(12px, 3.2vw, 14px);
+      }
+
+      #pdfViewer h3, #imageGallery h3 {
+        margin: 5px;
+      }
+
+      #pdfViewer button, #imageGallery button {
+        padding: 6px 12px;
+        font-size: clamp(12px, 3.2vw, 14px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>📁 Thư mục Google Drive</h2>
+  <ul id="folderList">Đang tải...</ul>
+  <div id="pdfViewer">
+    <h3>Xem PDF <button onclick="document.getElementById('pdfViewer').style.display='none'">Đóng</button></h3>
+    <iframe id="pdfFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+  </div>
+  <div id="imageGallery">
+    <h3 id="galleryTitle">Xem Ảnh <button onclick="document.getElementById('imageGallery').style.display='none'">Đóng</button></h3>
+    <div class="gallery-container" id="galleryContainer"></div>
+  </div>
+
+  <script>
+    const API_KEY = 'YOUR_API_KEY'; // Thay bằng API Key của bạn
+    const ROOT_FOLDER_ID = 'YOUR_ROOT_FOLDER_ID'; // Thay bằng ID thư mục gốc của bạn
+
+    // Vô hiệu hóa chuột phải và sự kiện cảm ứng
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Vô hiệu hóa F12, Ctrl+Shift+I, Ctrl+U
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
+          (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+      }
+    });
+
+    // Vô hiệu hóa sao chép và kéo-thả
+    document.addEventListener('copy', function(e) {
+      e.preventDefault();
+    });
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+    });
+
+    async function fetchFolderContents(folderId) {
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error('Không thể tải dữ liệu từ Google Drive');
+        }
+        const data = await res.json();
+        // Sắp xếp file theo tên (A-Z)
+        return (data.files || []).sort((a, b) => a.name.localeCompare(b.name));
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+        return [];
+      }
+    }
+
+    function createFolderItem(name, folderId) {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      link.className = 'folder';
+      link.textContent = `📂 ${name}`;
+      link.href = "#";
+
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'children';
+
+      let loaded = false;
+
+      link.onclick = async () => {
+        if (childrenDiv.style.display === 'none') {
+          childrenDiv.style.display = 'block';
+          if (!loaded) {
+            childrenDiv.innerHTML = '⏳ Đang tải...';
+            const items = await fetchFolderContents(folderId);
+            childrenDiv.innerHTML = '';
+
+            if (items.length === 0) {
+              childrenDiv.innerHTML = '<i>Không có dữ liệu.</i>';
+            } else {
+              const subUl = document.createElement('ul');
+              items.forEach(item => {
+                if (item.mimeType === 'application/vnd.google-apps.folder') {
+                  subUl.appendChild(createFolderItem(item.name, item.id));
+                } else {
+                  const fileLi = document.createElement('li');
+                  const a = document.createElement('a');
+                  a.textContent = `📄 ${item.name}`;
+                  a.href = "#";
+                  a.className = 'file-link';
+                  a.onclick = () => {
+                    if (isImageFile(item.name)) {
+                      showImageGallery(folderId, item.id);
+                    } else {
+                      document.getElementById('pdfViewer').style.display = 'block';
+                      document.getElementById('pdfFrame').src = getFileViewerURL(item);
+                    }
+                  };
+                  fileLi.appendChild(a);
+                  subUl.appendChild(fileLi);
+                }
+              });
+              childrenDiv.appendChild(subUl);
+            }
+
+            loaded = true;
+          }
+        } else {
+          childrenDiv.style.display = 'none';
+        }
+      };
+
+      li.appendChild(link);
+      li.appendChild(childrenDiv);
+      return li;
+    }
+
+    function isImageFile(name) {
+      const lowerName = name.toLowerCase();
+      return lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');
+    }
+
+    async function showImageGallery(folderId, selectedImageId) {
+      try {
+        const items = await fetchFolderContents(folderId);
+        const imageItems = items.filter(item => isImageFile(item.name));
+        const galleryContainer = document.getElementById('galleryContainer');
+        galleryContainer.innerHTML = '';
+
+        if (imageItems.length === 0) {
+          galleryContainer.innerHTML = '<p class="error-message">Không có ảnh trong thư mục.</p>';
+          document.getElementById('imageGallery').style.display = 'block';
+          document.getElementById('galleryTitle').textContent = 'Xem Ảnh';
+          return;
+        }
+
+        imageItems.forEach(item => {
+          const imgDiv = document.createElement('div');
+          imgDiv.className = 'gallery-item';
+          const img = document.createElement('img');
+          img.src = `https://drive.google.com/uc?export=view&id=${item.id}`;
+          img.alt = item.name;
+          img.loading = 'lazy'; // Lazy loading để cải thiện hiệu suất
+          img.onerror = () => {
+            imgDiv.innerHTML = '<p class="error-message">Không thể tải ảnh: ' + item.name + '</p>';
+          };
+          imgDiv.appendChild(img);
+          galleryContainer.appendChild(imgDiv);
+        });
+
+        document.getElementById('imageGallery').style.display = 'block';
+        const selectedIndex = imageItems.findIndex(item => item.id === selectedImageId);
+        document.getElementById('galleryTitle').textContent = `Xem Ảnh (${selectedIndex + 1}/${imageItems.length})`;
+
+        if (selectedIndex >= 0) {
+          const galleryItem = galleryContainer.children[selectedIndex];
+          galleryItem.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải gallery:', error);
+        document.getElementById('galleryContainer').innerHTML = '<p class="error-message">Lỗi khi tải ảnh. Vui lòng kiểm tra kết nối hoặc quyền truy cập.</p>';
+        document.getElementById('imageGallery').style.display = 'block';
       }
     }
 
@@ -348,27 +718,4 @@
           if (item.mimeType === 'application/vnd.google-apps.folder') {
             folderList.appendChild(createFolderItem(item.name, item.id));
           } else {
-            const fileLi = document.createElement('li');
-            const a = document.createElement('a');
-            a.textContent = `📄 ${item.name}`;
-            a.href = "#";
-            a.className = 'file-link';
-            a.onclick = () => {
-              if (isImageFile(item.name)) {
-                showImageGallery(ROOT_FOLDER_ID, item.id);
-              } else {
-                document.getElementById('pdfViewer').style.display = 'block';
-                document.getElementById('pdfFrame').src = getFileViewerURL(item);
-              }
-            };
-            fileLi.appendChild(a);
-            folderList.appendChild(fileLi);
-          }
-        });
-      }
-    }
-
-    init();
-  </script>
-</body>
-</html>
+            const fileLi = d
