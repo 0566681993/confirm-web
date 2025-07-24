@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Gửi Email bằng EmailJS</title>
 </head>
 <body>
@@ -9,8 +9,7 @@
   <p id="folderInfo"></p>
 
   <input type="email" id="email" placeholder="Nhập email..." />
-  <button onclick="sendEmail()">Gửi yêu cầu</button>
-  <button onclick="checkAccess()">📂 Đọc truy cập</button>
+  <button onclick="sendEmail()">Gửi</button>
   <p id="status"></p>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -18,8 +17,8 @@
     emailjs.init("bNyTDo7SAT7JYMWH1");
 
     const params = new URLSearchParams(window.location.search);
-    const folderId = params.get("folder") || "";
     const folderName = decodeURIComponent(params.get("name") || "Không rõ thư mục");
+
     document.getElementById("folderInfo").textContent = `📁 Thư mục đang chọn: ${folderName}`;
 
     function getDeviceId() {
@@ -31,7 +30,7 @@
       return id;
     }
 
-    function sendEmail() {
+    async function sendEmail() {
       const email = document.getElementById("email").value.trim();
       const deviceId = getDeviceId();
       const statusEl = document.getElementById("status");
@@ -41,49 +40,48 @@
         return;
       }
 
-      emailjs.send("0566681993", "0376425426", {
-        email: email,
-        device_id: deviceId,
-        folder_name: folderName
-      }).then(() => {
-        statusEl.innerText = "✅ Đã gửi yêu cầu thành công!";
-      }).catch((error) => {
-        console.error("Lỗi gửi email:", error);
-        statusEl.innerText = "❌ Gửi thất bại. Kiểm tra cấu hình EmailJS.";
-      });
-    }
+      statusEl.innerText = "⏳ Đang gửi yêu cầu...";
 
-    async function checkAccess() {
-      const email = document.getElementById("email").value.trim();
-      const deviceId = getDeviceId();
-      const statusEl = document.getElementById("status");
-
-      if (!email) {
-        alert("Vui lòng nhập email.");
-        return;
-      }
-
+      // 1. Gửi Email
       try {
-        const res = await fetch("https://rtxdvcvzkepogytpnvsi.supabase.co/rest/v1/approved_access?email=eq." + encodeURIComponent(email) + "&device_id=eq." + deviceId, {
+        await emailjs.send("0566681993", "0376425426", {
+          email: email,
+          device_id: deviceId,
+          folder_name: folderName
+        });
+        statusEl.innerText = "✅ Đã gửi yêu cầu Email thành công!";
+      } catch (error) {
+        console.error("Lỗi gửi email:", error);
+        statusEl.innerText = "❌ Gửi email thất bại.";
+        return;
+      }
+
+      // 2. Ghi vào Supabase
+      try {
+        const res = await fetch("https://rtxdvcvzkepogytpnvsi.supabase.co/rest/v1/approved_access", {
+          method: "POST",
           headers: {
             "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+          },
+          body: JSON.stringify({
+            email: email,
+            device_id: deviceId
+          })
         });
 
-        const data = await res.json();
-        if (data.length > 0) {
-          // Được duyệt → chuyển đến folder
-          const driveUrl = "https://drive.google.com/drive/folders/" + folderId;
-          window.location.href = driveUrl;
+        if (res.ok) {
+          statusEl.innerText += "\n🗂️ Đã ghi thông tin vào Supabase.";
         } else {
-          statusEl.textContent = "❌ Bạn chưa đăng ký hoặc chưa được duyệt.";
+          const err = await res.text();
+          console.error("Ghi Supabase lỗi:", err);
+          statusEl.innerText += "\n⚠️ Ghi vào Supabase thất bại.";
         }
-
       } catch (err) {
-        console.error("Lỗi khi kiểm tra truy cập:", err);
-        statusEl.textContent = "❌ Lỗi kiểm tra truy cập.";
+        console.error("Lỗi kết nối Supabase:", err);
+        statusEl.innerText += "\n⚠️ Không kết nối được Supabase.";
       }
     }
   </script>
