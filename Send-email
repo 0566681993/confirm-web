@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Gửi Email bằng EmailJS</title>
+</head>
+<body>
+  <h3>Gửi yêu cầu truy cập</h3>
+  <input type="email" id="email" placeholder="Nhập email..." />
+  <button onclick="sendEmail()">Gửi</button>
+  <p id="status"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    // Khởi tạo EmailJS
+    emailjs.init("bNyTDo7SAT7JYMWH1"); // public key
+
+    // Lấy ID thiết bị
+    function getDeviceId() {
+      let id = localStorage.getItem("device_id");
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem("device_id", id);
+      }
+      return id;
+    }
+
+    // Gửi email
+    function sendEmail() {
+      const email = document.getElementById("email").value.trim();
+      const deviceId = getDeviceId();
+      const statusEl = document.getElementById("status");
+
+      if (!email) {
+        alert("Vui lòng nhập email.");
+        return;
+      }
+
+      emailjs.send("0566681993", "0376425426", {
+        email: email,
+        device_id: deviceId
+      }).then(() => {
+        statusEl.innerText = "✅ Đã gửi yêu cầu thành công!";
+      }).catch((error) => {
+        console.error("Lỗi gửi email:", error);
+        statusEl.innerText = "❌ Gửi thất bại. Kiểm tra cấu hình EmailJS.";
+      });
+    }
+  </script>
+</body>
+</html>
