@@ -3,14 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <title>Danh sách thư mục Google Drive</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #333;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    li {
+      margin-bottom: 15px;
+    }
+
+    a {
+      text-decoration: none;
+      font-size: 22px;
+      color: #0066cc;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    a:hover {
+      color: #ff6600;
+    }
+  </style>
 </head>
 <body>
-  <h2>Chọn thư mục để gửi yêu cầu:</h2>
+  <h2>📁 Chọn thư mục để gửi yêu cầu:</h2>
   <ul id="folderList">Đang tải...</ul>
 
   <script>
     const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
-    const PARENT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi'; // Thư mục bạn đã công khai
+    const PARENT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
 
     async function listDriveFolders() {
       const folderList = document.getElementById('folderList');
@@ -22,7 +54,7 @@
         const res = await fetch(url);
         const data = await res.json();
 
-        folderList.innerHTML = ''; // Xóa trạng thái "Đang tải..."
+        folderList.innerHTML = '';
 
         if (!data.files || data.files.length === 0) {
           folderList.innerHTML = '<li>Không có thư mục nào được tìm thấy.</li>';
@@ -33,7 +65,7 @@
           const li = document.createElement('li');
           const link = document.createElement('a');
           link.href = `Send-email.html?folder=${folder.id}&name=${encodeURIComponent(folder.name)}`;
-          link.textContent = folder.name;
+          link.textContent = `📂 ${folder.name}`;
           li.appendChild(link);
           folderList.appendChild(li);
         });
