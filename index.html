@@ -206,8 +206,8 @@
   </div>
 
   <script>
-    const API_KEY = 'YOUR_API_KEY'; // Thay bằng API Key của bạn
-    const ROOT_FOLDER_ID = 'YOUR_ROOT_FOLDER_ID'; // Thay bằng ID thư mục gốc của bạn
+    const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM'; // API Key bạn cung cấp
+    const ROOT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi'; // Folder ID bạn cung cấp
 
     // Vô hiệu hóa chuột phải và sự kiện cảm ứng
     document.addEventListener('contextmenu', function(e) {
@@ -236,11 +236,11 @@
         const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`Lỗi khi tải dữ liệu từ Google Drive: ${res.status} ${res.statusText}`);
+          throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra API Key hoặc quyền truy cập thư mục.`);
         }
         const data = await res.json();
         if (!data.files) {
-          throw new Error('Không nhận được danh sách file từ Google Drive');
+          throw new Error('Không nhận được danh sách file từ Google Drive. Thư mục có thể trống hoặc không được chia sẻ.');
         }
         // Sắp xếp file theo tên (A-Z)
         return data.files.sort((a, b) => a.name.localeCompare(b.name));
