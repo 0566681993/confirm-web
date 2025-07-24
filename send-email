@@ -2,11 +2,46 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Gửi Email bằng EmailJS</title>
+  <title>Gửi yêu cầu truy cập</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h3 {
+      font-size: 24px;
+    }
+
+    #folderInfo {
+      margin: 10px 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="email"] {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
-  <p id="folderInfo"></p>
+  <p id="folderInfo">Đang tải thông tin thư mục...</p>
 
   <input type="email" id="email" placeholder="Nhập email..." />
   <button onclick="sendEmail()">Gửi</button>
@@ -17,11 +52,8 @@
     // Khởi tạo EmailJS
     emailjs.init("bNyTDo7SAT7JYMWH1");
 
-    // Lấy thông tin thư mục từ URL
-    const params = new URLSearchParams(window.location.search);
-    const folderName = decodeURIComponent(params.get("name") || "Không rõ thư mục");
-
-    // Hiển thị thư mục đang chọn
+    // Lấy tên thư mục từ localStorage
+    const folderName = localStorage.getItem("selected_folder_name") || "Không rõ thư mục";
     document.getElementById("folderInfo").textContent = `📁 Thư mục đang chọn: ${folderName}`;
 
     // Lấy ID thiết bị
