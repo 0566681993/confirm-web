@@ -29,6 +29,7 @@
       color: #0066cc;
       font-weight: bold;
       transition: color 0.3s;
+      cursor: pointer;
     }
 
     a:hover {
@@ -64,8 +65,17 @@
         data.files.forEach(folder => {
           const li = document.createElement('li');
           const link = document.createElement('a');
-          link.href = `Send-email.html?folder=${folder.id}&name=${encodeURIComponent(folder.name)}`;
+          link.href = "#";
           link.textContent = `📂 ${folder.name}`;
+
+          link.onclick = () => {
+            // Lưu vào localStorage
+            localStorage.setItem("selected_folder_id", folder.id);
+            localStorage.setItem("selected_folder_name", folder.name);
+            // Chuyển sang trang gửi email
+            window.location.href = "send-email.html";
+          };
+
           li.appendChild(link);
           folderList.appendChild(li);
         });
