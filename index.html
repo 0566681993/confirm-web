@@ -35,10 +35,15 @@
     a:hover {
       color: #ff6600;
     }
+
+    .children {
+      margin-left: 20px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-  <h2>📁 Chọn thư mục để gửi yêu cầu:</h2>
+  <h2>📁 Chọn thư mục để xem nội dung:</h2>
   <ul id="folderList">Đang tải...</ul>
 
   <script>
@@ -68,15 +73,40 @@
           link.href = "#";
           link.textContent = `📂 ${folder.name}`;
 
-          link.onclick = () => {
-            // Lưu vào localStorage
-            localStorage.setItem("selected_folder_id", folder.id);
-            localStorage.setItem("selected_folder_name", folder.name);
-            // Chuyển sang trang gửi email
-            window.location.href = "send-email.html";
+          const childrenDiv = document.createElement('div');
+          childrenDiv.className = 'children';
+          childrenDiv.textContent = '⏳ Bấm để tải nội dung...';
+          childrenDiv.style.display = 'none';
+
+          link.onclick = async () => {
+            // Toggle hiển thị
+            if (childrenDiv.style.display === 'none') {
+              childrenDiv.style.display = 'block';
+              childrenDiv.textContent = '⏳ Đang tải...';
+
+              // Gọi API lấy danh sách con
+              const subUrl = `https://www.googleapis.com/drive/v3/files?q='${folder.id}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+              const res = await fetch(subUrl);
+              const subData = await res.json();
+
+              if (!subData.files || subData.files.length === 0) {
+                childrenDiv.innerHTML = '<i>Không có file hoặc thư mục con.</i>';
+              } else {
+                const html = subData.files.map(f =>
+                  f.mimeType === 'application/vnd.google-apps.folder'
+                    ? `📁 ${f.name}`
+                    : `📄 ${f.name}`
+                ).map(item => `<div>${item}</div>`).join('');
+                childrenDiv.innerHTML = html;
+              }
+            } else {
+              // Ẩn lại nếu đã hiện
+              childrenDiv.style.display = 'none';
+            }
           };
 
           li.appendChild(link);
+          li.appendChild(childrenDiv);
           folderList.appendChild(li);
         });
       } catch (err) {
