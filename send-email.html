@@ -2,88 +2,77 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Gửi Email bằng EmailJS</title>
+  <title>Gửi yêu cầu truy cập</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
-  <h3>Gửi yêu cầu truy cập</h3>
-  <p id="folderInfo"></p>
+  <h1>Gửi yêu cầu truy cập</h1>
+  <form id="accessForm">
+    <label>Email:</label>
+    <input type="email" id="email" required />
+    <br><br>
+    <button type="submit">Gửi yêu cầu truy cập</button>
+  </form>
 
-  <input type="email" id="email" placeholder="Nhập email..." />
-  <button onclick="sendEmail()">Gửi</button>
-  <p id="status"></p>
+  <p id="message"></p>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("bNyTDo7SAT7JYMWH1");
+    const supabaseUrl = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const params = new URLSearchParams(window.location.search);
-    const folderName = decodeURIComponent(params.get("name") || "Không rõ thư mục");
-
-    document.getElementById("folderInfo").textContent = `📁 Thư mục đang chọn: ${folderName}`;
-
-    function getDeviceId() {
-      let id = localStorage.getItem("device_id");
+    const deviceId = (() => {
+      const key = 'device_id';
+      let id = localStorage.getItem(key);
       if (!id) {
         id = crypto.randomUUID();
-        localStorage.setItem("device_id", id);
+        localStorage.setItem(key, id);
       }
       return id;
-    }
+    })();
 
-    async function sendEmail() {
-      const email = document.getElementById("email").value.trim();
-      const deviceId = getDeviceId();
-      const statusEl = document.getElementById("status");
+    document.getElementById('accessForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const message = document.getElementById('message');
+      message.textContent = 'Đang kiểm tra...';
 
-      if (!email) {
-        alert("Vui lòng nhập email.");
-        return;
-      }
-
-      statusEl.innerText = "⏳ Đang gửi yêu cầu...";
-
-      // 1. Gửi Email
       try {
-        await emailjs.send("0566681993", "0376425426", {
-          email: email,
-          device_id: deviceId,
-          folder_name: folderName
-        });
-        statusEl.innerText = "✅ Đã gửi yêu cầu Email thành công!";
-      } catch (error) {
-        console.error("Lỗi gửi email:", error);
-        statusEl.innerText = "❌ Gửi email thất bại.";
-        return;
-      }
+        // Kiểm tra xem đã tồn tại chưa
+        const { data: existing, error: checkError } = await supabase
+          .from('approved_access')
+          .select('*')
+          .eq('email', email)
+          .eq('device_id', deviceId);
 
-      // 2. Ghi vào Supabase
-      try {
-        const res = await fetch("https://rtxdvcvzkepogytpnvsi.supabase.co/rest/v1/approved_access", {
-          method: "POST",
-          headers: {
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify({
-            email: email,
-            device_id: deviceId
-          })
-        });
-
-        if (res.ok) {
-          statusEl.innerText += "\n🗂️ Đã ghi thông tin vào Supabase.";
-        } else {
-          const err = await res.text();
-          console.error("Ghi Supabase lỗi:", err);
-          statusEl.innerText += "\n⚠️ Ghi vào Supabase thất bại.";
+        if (checkError) {
+          console.error('Lỗi kiểm tra:', checkError);
+          message.textContent = 'Lỗi kiểm tra cơ sở dữ liệu.';
+          return;
         }
+
+        if (existing.length > 0) {
+          message.textContent = 'Email và thiết bị đã đăng ký rồi.';
+          return;
+        }
+
+        // Chưa có → thêm mới
+        const { error: insertError } = await supabase
+          .from('approved_access')
+          .insert([{ email, device_id: deviceId }]);
+
+        if (insertError) {
+          console.error('Lỗi ghi vào DB:', insertError);
+          message.textContent = 'Gửi yêu cầu thất bại.';
+          return;
+        }
+
+        message.textContent = 'Gửi yêu cầu thành công!';
       } catch (err) {
-        console.error("Lỗi kết nối Supabase:", err);
-        statusEl.innerText += "\n⚠️ Không kết nối được Supabase.";
+        console.error('Lỗi không xác định:', err);
+        message.textContent = 'Đã xảy ra lỗi.';
       }
-    }
+    });
   </script>
 </body>
 </html>
