@@ -1,93 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Yêu cầu truy cập</title>
+  <title>Trang Đăng Nhập</title>
+</head>
+<body>
+  <h2>Nhập email để truy cập</h2>
+  <input type="email" id="email" placeholder="Nhập email..." />
+  <button onclick="handleSubmit()">Gửi</button>
+  <p id="status"></p>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
   <script>
+    // Khởi tạo Supabase
     const supabase = supabase.createClient(
       "https://rtxdvcvzkepogytpnvsi.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU"
     );
-  </script>
-</head>
-<body>
-  <h2>Nhập email để truy cập</h2>
-  <input type="email" id="email" placeholder="Email..." />
-  <button onclick="handleSubmit()">Tiếp tục</button>
-  <p id="status"></p>
 
-  <script>
+    // Khởi tạo EmailJS
+    emailjs.init("bNyTDo7SAT7JYMWH1");
+
+    // Hàm tạo Device ID cố định cho máy
     function getDeviceId() {
-      let id = localStorage.getItem('device_id');
+      let id = localStorage.getItem("device_id");
       if (!id) {
         id = crypto.randomUUID();
-        localStorage.setItem('device_id', id);
+        localStorage.setItem("device_id", id);
       }
       return id;
     }
 
     async function handleSubmit() {
-      const email = document.getElementById('email').value.trim().toLowerCase();
+      const email = document.getElementById("email").value.trim().toLowerCase();
       const device_id = getDeviceId();
-      const statusEl = document.getElementById('status');
+      const statusEl = document.getElementById("status");
 
-      if (!email) {
-        alert("Vui lòng nhập email");
-        return;
-      }
+      if (!email) return alert("Vui lòng nhập email");
 
-      // Kiểm tra email + device đã được duyệt chưa
+      // Kiểm tra đã được duyệt chưa
       const { data, error } = await supabase
-        .from('Users')
-        .select('*')
-        .eq('Email', email)
-        .eq('Devices', device_id);
+        .from("Users")
+        .select("*")
+        .eq("Email", email)
+        .eq("Devices", device_id);
 
       if (error) {
-        statusEl.innerText = 'Lỗi kết nối với Supabase';
+        console.error(error);
+        statusEl.innerText = "❌ Lỗi kết nối Supabase";
         return;
       }
 
       if (data.length > 0 && data[0].Approval === true) {
-        localStorage.setItem('email', email);
-        window.location.href = 'main.html';
+        localStorage.setItem("email", email);
+        window.location.href = "main.html";
       } else {
-        // Thêm hoặc cập nhật thông tin
-        await supabase.from('Users').upsert([
+        // Ghi log yêu cầu
+        await supabase.from("Users").upsert([
           { Email: email, Devices: device_id, Approval: false }
         ]);
 
-        // Gửi email thông báo
-        await fetch('https://formsubmit.co/ajax/pdt681993@gmail.com', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            Email: email,
-            Device: device_id,
-            Message: 'Yêu cầu truy cập mới từ người dùng.'
-          })
+        // Gửi email tới admin
+        emailjs.send("0373425426", "0373425426", {
+          email: email,
+          device_id: device_id
+        }).then(() => {
+          statusEl.innerText = "✅ Đã gửi yêu cầu truy cập. Vui lòng chờ duyệt.";
+        }).catch((err) => {
+          console.error("Lỗi gửi EmailJS:", err);
+          statusEl.innerText = "❌ Không gửi được yêu cầu. Hãy thử lại.";
         });
-
-        statusEl.innerText = 'Đã gửi yêu cầu. Vui lòng chờ xác nhận!';
       }
     }
 
-    // Tự động vào main nếu đã duyệt
+    // Khi trang tải → kiểm tra đăng nhập lại
     window.onload = async () => {
-      const email = localStorage.getItem('email');
+      const email = localStorage.getItem("email");
       const device_id = getDeviceId();
-
       if (!email) return;
 
       const { data } = await supabase
-        .from('Users')
-        .select('*')
-        .eq('Email', email)
-        .eq('Devices', device_id);
+        .from("Users")
+        .select("*")
+        .eq("Email", email)
+        .eq("Devices", device_id);
 
       if (data.length > 0 && data[0].Approval === true) {
-        window.location.href = 'main.html';
+        window.location.href = "main.html";
       }
     };
   </script>
