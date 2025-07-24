@@ -1,29 +1,21 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Trang Đăng Nhập</title>
+  <meta charset="UTF-8">
+  <title>Gửi Email Test</title>
 </head>
 <body>
-  <h2>Nhập email để truy cập</h2>
+  <h3>Gửi yêu cầu test đến Email</h3>
   <input type="email" id="email" placeholder="Nhập email..." />
-  <button onclick="handleSubmit()">Gửi</button>
+  <button onclick="sendTestEmail()">Gửi</button>
   <p id="status"></p>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
   <script>
-    // Khởi tạo Supabase
-    const supabase = supabase.createClient(
-      "https://rtxdvcvzkepogytpnvsi.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU"
-    );
-
     // Khởi tạo EmailJS
     emailjs.init("bNyTDo7SAT7JYMWH1");
 
-    // Hàm tạo Device ID cố định cho máy
+    // Tạo device ID lưu cố định trên trình duyệt
     function getDeviceId() {
       let id = localStorage.getItem("device_id");
       if (!id) {
@@ -33,64 +25,26 @@
       return id;
     }
 
-    async function handleSubmit() {
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const device_id = getDeviceId();
+    function sendTestEmail() {
+      const emailInput = document.getElementById("email").value.trim();
+      const deviceId = getDeviceId();
       const statusEl = document.getElementById("status");
 
-      if (!email) return alert("Vui lòng nhập email");
-
-      // Kiểm tra đã được duyệt chưa
-      const { data, error } = await supabase
-        .from("Users")
-        .select("*")
-        .eq("Email", email)
-        .eq("Devices", device_id);
-
-      if (error) {
-        console.error(error);
-        statusEl.innerText = "❌ Lỗi kết nối Supabase";
+      if (!emailInput) {
+        alert("Vui lòng nhập email.");
         return;
       }
 
-      if (data.length > 0 && data[0].Approval === true) {
-        localStorage.setItem("email", email);
-        window.location.href = "main.html";
-      } else {
-        // Ghi log yêu cầu
-        await supabase.from("Users").upsert([
-          { Email: email, Devices: device_id, Approval: false }
-        ]);
-
-        // Gửi email tới admin
-        emailjs.send("0373425426", "0373425426", {
-          email: email,
-          device_id: device_id
-        }).then(() => {
-          statusEl.innerText = "✅ Đã gửi yêu cầu truy cập. Vui lòng chờ duyệt.";
-        }).catch((err) => {
-          console.error("Lỗi gửi EmailJS:", err);
-          statusEl.innerText = "❌ Không gửi được yêu cầu. Hãy thử lại.";
-        });
-      }
+      emailjs.send("0566681993", "0373425426", {
+        email: emailInput,
+        device_id: deviceId
+      }).then(() => {
+        statusEl.innerText = "✅ Đã gửi email thành công!";
+      }).catch(err => {
+        console.error("Gửi thất bại:", err);
+        statusEl.innerText = "❌ Gửi email thất bại.";
+      });
     }
-
-    // Khi trang tải → kiểm tra đăng nhập lại
-    window.onload = async () => {
-      const email = localStorage.getItem("email");
-      const device_id = getDeviceId();
-      if (!email) return;
-
-      const { data } = await supabase
-        .from("Users")
-        .select("*")
-        .eq("Email", email)
-        .eq("Devices", device_id);
-
-      if (data.length > 0 && data[0].Approval === true) {
-        window.location.href = "main.html";
-      }
-    };
   </script>
 </body>
 </html>
