@@ -2,61 +2,26 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Gửi yêu cầu truy cập</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-    }
-
-    h3 {
-      font-size: 24px;
-    }
-
-    #folderInfo {
-      margin: 10px 0;
-      font-size: 20px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    input[type="email"] {
-      padding: 10px;
-      width: 300px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-left: 10px;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
+  <title>Gửi Email bằng EmailJS</title>
 </head>
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
-  <p id="folderInfo">Đang tải thông tin thư mục...</p>
+  <p id="folderInfo"></p>
 
   <input type="email" id="email" placeholder="Nhập email..." />
-  <button onclick="sendEmail()">Gửi</button>
+  <button onclick="sendEmail()">Gửi yêu cầu</button>
+  <button onclick="checkAccess()">📂 Đọc truy cập</button>
   <p id="status"></p>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script>
-    // Khởi tạo EmailJS
     emailjs.init("bNyTDo7SAT7JYMWH1");
 
-    // Lấy tên thư mục từ localStorage
-    const folderName = localStorage.getItem("selected_folder_name") || "Không rõ thư mục";
+    const params = new URLSearchParams(window.location.search);
+    const folderId = params.get("folder") || "";
+    const folderName = decodeURIComponent(params.get("name") || "Không rõ thư mục");
     document.getElementById("folderInfo").textContent = `📁 Thư mục đang chọn: ${folderName}`;
 
-    // Lấy ID thiết bị
     function getDeviceId() {
       let id = localStorage.getItem("device_id");
       if (!id) {
@@ -66,7 +31,6 @@
       return id;
     }
 
-    // Gửi email
     function sendEmail() {
       const email = document.getElementById("email").value.trim();
       const deviceId = getDeviceId();
@@ -87,6 +51,40 @@
         console.error("Lỗi gửi email:", error);
         statusEl.innerText = "❌ Gửi thất bại. Kiểm tra cấu hình EmailJS.";
       });
+    }
+
+    async function checkAccess() {
+      const email = document.getElementById("email").value.trim();
+      const deviceId = getDeviceId();
+      const statusEl = document.getElementById("status");
+
+      if (!email) {
+        alert("Vui lòng nhập email.");
+        return;
+      }
+
+      try {
+        const res = await fetch("https://rtxdvcvzkepogytpnvsi.supabase.co/rest/v1/approved_access?email=eq." + encodeURIComponent(email) + "&device_id=eq." + deviceId, {
+          headers: {
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU",
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await res.json();
+        if (data.length > 0) {
+          // Được duyệt → chuyển đến folder
+          const driveUrl = "https://drive.google.com/drive/folders/" + folderId;
+          window.location.href = driveUrl;
+        } else {
+          statusEl.textContent = "❌ Bạn chưa đăng ký hoặc chưa được duyệt.";
+        }
+
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra truy cập:", err);
+        statusEl.textContent = "❌ Lỗi kiểm tra truy cập.";
+      }
     }
   </script>
 </body>
