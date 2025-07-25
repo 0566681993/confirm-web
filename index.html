@@ -37,7 +37,7 @@
       tbody.innerHTML = '<tr><td colspan="3">Đang tải...</td></tr>';
 
       const { data, error } = await supabase
-        .from('folder_access')
+        .from('approved_access')
         .select('folder_name, device_id, approval');
 
       if (error) {
