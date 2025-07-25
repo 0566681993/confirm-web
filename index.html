@@ -101,11 +101,11 @@
     }
 
     .navigation button {
-      background: #ff4d4d;
+      background: 5px solid #ff4d4d;
       color: white;
       border: none;
       padding: 5px 10px;
-      border-radius: 3px;
+      border-radius: clamp(10px, 2vw, 5px); 
       cursor: pointer;
       font-size: clamp(12px, 3vw, 14px);
       flex: 1;
@@ -118,15 +118,15 @@
 
     .navigation .close-button {
       flex: 1;
-      text-align: right;
+      text-align: center;
       max-width: 80px;
     }
 
     .error-message {
       color: red;
-      font-size: clamp(14px, 3.5vw, 16px);
+      font-size: clamp(10px, 3.5vw, 16px);
       text-align: center;
-      margin: 10px 0;
+      margin: 10px;
     }
 
     #requestModal {
@@ -136,7 +136,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0, 0.5);
       z-index: 1002;
       justify-content: center;
       align-items: center;
@@ -145,31 +145,43 @@
     .modal-content {
       background: #fff;
       padding: 20px;
-      border-radius: 5px;
-      text-align: center;
+      border-radius: clamp(10px, 2vw, 5px);
+      text-align: left;
       max-width: 300px;
-      width: 90%;
+      width: auto;
+    }
+
+    .modal-content h3 {
+      font-size: clamp(10px, 2vw, 14px);
+      margin-bottom: 10px;
+    }
+
+    .modal-content p {
+      font-size: clamp(10px, 3.5vw, 12px);
+      margin-bottom: 10px;
     }
 
     .modal-content input {
-      width: 100%;
-      padding: 8px;
+      width: auto;
+      padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      border: clamp(1px, 0.2vw, 2px); solid #ccc;
+      border-radius: clamp(3px, 0.5vw, 3px);
+      font-size: clamp(10px, 3vw, 12px);
     }
 
-    .modal-content button {
-      background: #ff4d4d;
+    .modal-content {
+      background: auto;
       color: white;
       border: none;
-      padding: 8px 15px;
-      border-radius: 3px;
+      padding: 10px 15px;
+      border-radius: clamp(3px, 0.5vw, 3px);
       cursor: pointer;
+      font-size: clamp(10px, 3vw, 12px);
     }
 
-    .modal-content button:hover {
-      background: #e60000;
+    .modal-content {
+      background-color: #e60000;
     }
 
     @media screen and (max-width: 600px) {
@@ -257,10 +269,14 @@
     document.addEventListener('copy', e => e.preventDefault());
     document.addEventListener('dragstart', e => e.preventDefault());
 
+    function normalizeFolderName(name) {
+      return name.toLowerCase().trim().replace(/\s+/g, ' ');
+    }
+
     function getDeviceId() {
       let deviceId = localStorage.getItem('deviceId');
       if (!deviceId) {
-        deviceId =  crypto.randomUUID();
+        deviceId = crypto.randomUUID();
         localStorage.setItem('deviceId', deviceId);
       }
       return deviceId;
@@ -268,15 +284,18 @@
 
     async function checkFolderAccess(folderName, deviceId) {
       try {
+        const normalizedFolderName = normalizeFolderName(folderName);
+        console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });
         const { data, error } = await supabase
           .from('folder_access')
           .select('approval')
-          .eq('folder_name', folderName)
+          .eq('folder_name', normalizedFolderName)
           .eq('device_id', deviceId)
           .single();
         if (error && error.code !== 'PGRST116') {
           throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
         }
+        console.log('Supabase response:', { data, error });
         return data && data.approval === true;
       } catch (error) {
         console.error('Lỗi kiểm tra quyền:', error);
@@ -293,14 +312,38 @@
 
       try {
         const deviceId = getDeviceId();
+        const normalizedFolderName = normalizeFolderName(currentFolderName);
+
+        // Kiểm tra xem yêu cầu đã tồn tại chưa
+        const { data: existingRequest, error: checkError } = await supabase
+          .from('folder_access')
+          .select('approval')
+          .eq('folder_name', normalizedFolderName)
+          .eq('device_id', deviceId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra yêu cầu: ${checkError.message}`);
+        }
+
+        if (existingRequest) {
+          alert(existingRequest.approval 
+            ? 'Bạn đã có quyền truy cập thư mục này!'
+            : 'Yêu cầu truy cập đã được gửi trước đó. Vui lòng chờ phê duyệt.');
+          document.getElementById('requestModal').style.display = 'none';
+          document.getElementById('userNameInput').value = '';
+          return;
+        }
+
         const { error } = await supabase
           .from('folder_access')
           .insert({
-            folder_name: currentFolderName,
+            folder_name: normalizedFolderName,
             device_id: deviceId,
             user_name: userName,
             approval: false
           });
+
         if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
 
         alert('Yêu cầu đã được gửi. Vui lòng chờ phê duyệt.');
