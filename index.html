@@ -261,6 +261,7 @@
     document.addEventListener('copy', function(e) {
       e.preventDefault();
     });
+
     document.addEventListener('dragstart', function(e) {
       e.preventDefault();
     });
@@ -268,8 +269,8 @@
     function getDeviceId() {
       let deviceId = localStorage.getItem('deviceId');
       if (!deviceId) {
-        deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('deviceId', deviceId);
+        deviceId = 'device-' + Math.random().toString(36).substr(2, 10);
+        localStorage.setItem('deviceId', deviceId');
       }
       return deviceId;
     }
@@ -317,20 +318,20 @@
 
     async function fetchFolderContents(folderId) {
       try {
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'%2Bin+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra hoặc quyền truy cập.`);
+          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}`);
         }
         const data = await res.json();
         if (!data.files) {
-          throw new Error('Không nhận được danh sách file từ Google Drive. Thư mục có thể trống hoặc không được chia sẻ.');
+          throw new Error('Không nhận được danh sách file/thư mục từ Google Drive.');
         }
         return data.files.sort((a, b) => a.name.localeCompare(b.name));
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
         const folderList = document.getElementById('folderList');
-        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}. Vui lòng kiểm tra hoặc quyền truy cập Google Drive.</li>`;
         return [];
       }
     }
@@ -339,11 +340,11 @@
       const li = document.createElement('li');
       const link = document.createElement('a');
       link.className = 'folder';
-      link.textContent = `📜 ${name}`;
+      link.textContent = `📓 ${name}`;
       link.href = '#';
 
-      const itemsDiv = document.createElement('div');
-      itemsDiv.className = 'children';
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'children';
 
       let loaded = false;
 
@@ -362,15 +363,15 @@
           return;
         }
 
-        if (itemsDiv.style.display === 'none') {
-          itemsDiv.style.display = 'block';
+        if (childrenDiv.style.display === 'none') {
+          childrenDiv.style.display = 'block';
           if (!loaded) {
-            itemsDiv.innerHTML = '<li>⏳ Đang tải...</li>';
+            childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
             const items = await fetchFolderContents(folderId);
-            itemsDiv.innerHTML = '';
+            childrenDiv.innerHTML = '';
 
             if (items.length === 0) {
-              itemsDiv.innerHTML = '<i>Không có nội dung.</i>';
+              childrenDiv.innerHTML = '<i>Không có nội dung.</i>';
             } else {
               const subUl = document.createElement('ul');
               items.forEach(item => {
@@ -390,7 +391,7 @@
                       document.getElementById('fileFrame').src = getFileViewerURL(item);
                       document.getElementById('navigationButtons').innerHTML = `
                         <div class="close-button">
-                          <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+                          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                         </div>
                       `;
                     }
@@ -399,17 +400,17 @@
                   subUl.appendChild(fileLi);
                 }
               });
-              itemsDiv.appendChild(subUl);
+              childrenDiv.appendChild(subUl);
             }
             loaded = true;
           }
         } else {
-          itemsDiv.style.display = 'none';
+          childrenDiv.style.display = 'none';
         }
       };
 
       li.appendChild(link);
-      li.appendChild(itemsDiv);
+      li.appendChild(childrenDiv);
       return li;
     }
 
@@ -427,9 +428,9 @@
           document.getElementById('fileViewer').style.display = 'block';
           document.getElementById('fileFrame').src = '';
           document.getElementById('navigationButtons').innerHTML = `
-            <p class="error-message">Không có ảnh trong danh sách này.</p>
+            <p class="error-message">Không có ảnh trong thư mục.</p>
             <div class="close-button">
-              <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
             </div>
           `;
           return;
@@ -442,22 +443,22 @@
 
         document.getElementById('fileViewer').style.display = 'block';
         document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
-        document.getElementById('navigation').innerHTML = `
+        document.getElementById('navigationButtons').innerHTML = `
           <span class="image-name">${currentImages[currentImageIndex].name}</span>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
           </div>
         `;
       } catch (error) {
         console.error('Lỗi khi tải ảnh:', error);
         document.getElementById('fileViewer').style.display = 'block';
         document.getElementById('fileFrame').src = '';
-        document.getElementById('navigation').innerHTML = `
-          <p class="error-message">Lỗi tải ảnh: ${error.message}</p>
+        document.getElementById('navigationButtons').innerHTML = `
+          <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
           </div>
         `;
       }
@@ -477,7 +478,7 @@
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
         <div class="close-button">
-          <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
         </div>
       `;
     }
@@ -498,13 +499,13 @@
         const folderList = document.getElementById('folderList');
         folderList.innerHTML = 'Đang tải...';
 
-        const folders = await fetchFolderContents(ROOT_FOLDER_ID);
+        const items = await fetchFolderContents(ROOT_FOLDER_ID);
         folderList.innerHTML = '';
 
-        if (folders.length === 0) {
-          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc nội dung nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
+        if (items.length === 0) {
+          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào.</li>';
         } else {
-          folders.forEach(item => {
+          items.forEach(item => {
             if (item.mimeType === 'application/vnd.google-apps.folder') {
               folderList.appendChild(createFolderItem(item.name, item.id));
             } else {
@@ -521,7 +522,7 @@
                   document.getElementById('fileFrame').src = getFileViewerURL(item);
                   document.getElementById('navigationButtons').innerHTML = `
                     <div class="close-button">
-                      <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                     </div>
                   `;
                 }
