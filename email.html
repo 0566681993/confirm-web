@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gửi Yêu Cầu Truy Cập</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+      text-align: center;
+      margin: 0;
+    }
+    h3 {
+      font-size: clamp(18px, 5vw, 22px);
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: clamp(14px, 4vw, 16px);
+      color: #666;
+      margin: 10px 0;
+    }
+    .folder-name {
+      font-weight: bold;
+      color: #0066cc;
+    }
+    input[type="email"] {
+      width: 100%;
+      max-width: 300px;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: clamp(12px, 3.5vw, 14px);
+    }
+    button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: clamp(12px, 3.5vw, 14px);
+    }
+    button:hover {
+      background: #e60000;
+    }
+    #status {
+      color: #333;
+      font-size: clamp(12px, 3.5vw, 14px);
+    }
+    #status.success {
+      color: green;
+    }
+    #status.error {
+      color: red;
+    }
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      h3 {
+        font-size: clamp(16px, 4.5vw, 18px);
+      }
+      p {
+        font-size: clamp(12px, 3.2vw, 14px);
+      }
+      input[type="email"], button {
+        font-size: clamp(10px, 3vw, 12px);
+        padding: 6px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h3>Gửi yêu cầu truy cập</h3>
+  <p id="folderInfo">📁 Thư mục đang chọn: <span class="folder-name">...</span></p>
+  <input type="email" id="email" placeholder="Nhập email..." />
+  <button onclick="sendEmail()">Gửi yêu cầu</button>
+  <p id="status"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    emailjs.init("bNyTDo7SAT7JYMWH1");
+
+    const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
+    document.getElementById('folderInfo').innerHTML = `📁 Thư mục đang chọn: <span class="folder-name">${folderName}</span>`;
+
+    function getDeviceId() {
+      let id = localStorage.getItem("deviceId"); // Giữ key nhất quán với index.html
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem("deviceId", id);
+      }
+      return id;
+    }
+
+    async function sendEmail() {
+      const email = document.getElementById("email").value.trim();
+      const deviceId = getDeviceId();
+      const statusEl = document.getElementById("status");
+
+      if (!email) {
+        statusEl.textContent = "Vui lòng nhập email.";
+        statusEl.className = "error";
+        return;
+      }
+
+      try {
+        await emailjs.send("0566681993", "0376425426", {
+          email: email,
+          device_id: deviceId,
+          folder_name: folderName
+        });
+        statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
+        statusEl.className = "success";
+        document.getElementById("email").value = "";
+      } catch (error) {
+        console.error("Lỗi gửi email:", error);
+        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.";
+        statusEl.className = "error";
+      }
+    }
+  </script>
+</body>
+</html>
