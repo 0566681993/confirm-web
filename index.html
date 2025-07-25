@@ -11,7 +11,7 @@
       margin: 0;
       user-select: none;
       overflow-x: hidden;
-      background: #f0f0f0; /* Nền sáng để phát hiện trang trắng */
+      background: #f0f0f0;
     }
 
     h2 {
@@ -57,7 +57,6 @@
       text-decoration: underline;
     }
 
-    /* File Viewer (cho cả PDF và ảnh) */
     #fileViewer {
       display: none;
       position: fixed;
@@ -72,7 +71,7 @@
     #fileFrame {
       border: none;
       width: 100%;
-      height: calc(100% - 40px); /* Để lại không gian cho nút điều hướng */
+      height: calc(100% - 40px);
       display: block;
     }
 
@@ -83,11 +82,11 @@
       right: 0;
       display: flex;
       align-items: center;
-      justify-content: space-between; /* Khoảng cách đều giữa các phần tử */
-      background: transparent; /* Nền trong suốt */
+      justify-content: space-between;
+      background: transparent;
       padding: 5px 10px;
       z-index: 1001;
-      gap: 10px; /* Khoảng cách đều giữa các phần tử */
+      gap: 10px;
     }
 
     .navigation .image-name {
@@ -96,8 +95,8 @@
       text-align: left;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis; /* Cắt ngắn tên dài */
-      max-width: 25%; /* Giới hạn chiều rộng tên ảnh */
+      text-overflow: ellipsis;
+      max-width: 25%;
       flex: 1;
     }
 
@@ -109,8 +108,8 @@
       border-radius: 3px;
       cursor: pointer;
       font-size: clamp(12px, 3vw, 14px);
-      flex: 1; /* Đảm bảo nút chiếm không gian đều */
-      max-width: 80px; /* Giới hạn chiều rộng nút */
+      flex: 1;
+      max-width: 80px;
     }
 
     .navigation button:hover {
@@ -120,7 +119,7 @@
     .navigation .close-button {
       flex: 1;
       text-align: right;
-      max-width: 80px; /* Giới hạn chiều rộng nút Đóng */
+      max-width: 80px;
     }
 
     .error-message {
@@ -130,7 +129,49 @@
       margin: 10px 0;
     }
 
-    /* Media Queries cho màn hình nhỏ */
+    #requestModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1002;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .modal-content button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background: #e60000;
+    }
+
     @media screen and (max-width: 600px) {
       body {
         padding: 10px;
@@ -152,7 +193,7 @@
       .navigation button {
         padding: 4px 8px;
         font-size: clamp(10px, 2.8vw, 12px);
-        max-width: 60px; /* Thu nhỏ nút trên di động */
+        max-width: 60px;
       }
 
       .navigation .image-name {
@@ -165,7 +206,12 @@
       }
 
       .navigation {
-        gap: 5px; /* Giảm khoảng cách trên di động */
+        gap: 5px;
+      }
+
+      .modal-content {
+        padding: 15px;
+        max-width: 250px;
       }
     }
   </style>
@@ -177,14 +223,28 @@
     <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
     <div class="navigation" id="navigationButtons"></div>
   </div>
+  <div id="requestModal">
+    <div class="modal-content">
+      <h3>Yêu cầu truy cập</h3>
+      <p>Nhập tên của bạn:</p>
+      <input type="text" id="userNameInput" placeholder="Tên của bạn" />
+      <button onclick="submitRequest()">Gửi yêu cầu</button>
+    </div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
     const ROOT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
+    const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
+
+    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentImages = [];
     let currentImageIndex = 0;
     let currentFolderId = '';
+    let currentFolderName = '';
 
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
@@ -205,12 +265,62 @@
       e.preventDefault();
     });
 
+    function getDeviceId() {
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deviceId', deviceId);
+      }
+      return deviceId;
+    }
+
+    async function checkFolderAccess(folderName, deviceId) {
+      const { data, error } = await supabase
+        .from('folder_access')
+        .select('approval')
+        .eq('folder_name', folderName)
+        .eq('device_id', deviceId)
+        .single();
+      if (error && error.code !== 'PGRST116') {
+        throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+      }
+      return data && data.approval === true;
+    }
+
+    async function submitRequest() {
+      const userName = document.getElementById('userNameInput').value.trim();
+      if (!userName) {
+        alert('Vui lòng nhập tên!');
+        return;
+      }
+
+      try {
+        const deviceId = getDeviceId();
+        const { error } = await supabase
+          .from('folder_access')
+          .insert({
+            folder_name: currentFolderName,
+            device_id: deviceId,
+            user_name: userName,
+            approval: false
+          });
+        if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
+
+        alert('Yêu cầu đã được gửi. Vui lòng chờ phê duyệt.');
+        document.getElementById('requestModal').style.display = 'none';
+        document.getElementById('userNameInput').value = '';
+      } catch (error) {
+        console.error('Lỗi gửi yêu cầu:', error);
+        alert(`Lỗi: ${error.message}`);
+      }
+    }
+
     async function fetchFolderContents(folderId) {
       try {
         const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra API Key hoặc quyền truy cập thư mục.`);
+          throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra hoặc quyền truy cập.`);
         }
         const data = await res.json();
         if (!data.files) {
@@ -220,7 +330,7 @@
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
         const folderList = document.getElementById('folderList');
-        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}. Vui lòng kiểm tra API Key, quyền truy cập thư mục, hoặc kết nối mạng.</li>`;
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
         return [];
       }
     }
@@ -229,24 +339,38 @@
       const li = document.createElement('li');
       const link = document.createElement('a');
       link.className = 'folder';
-      link.textContent = `📂 ${name}`;
-      link.href = "#";
+      link.textContent = `📜 ${name}`;
+      link.href = '#';
 
-      const childrenDiv = document.createElement('div');
-      childrenDiv.className = 'children';
+      const itemsDiv = document.createElement('div');
+      itemsDiv.className = 'children';
 
       let loaded = false;
 
       link.onclick = async () => {
-        if (childrenDiv.style.display === 'none') {
-          childrenDiv.style.display = 'block';
+        const deviceId = getDeviceId();
+        try {
+          const hasAccess = await checkFolderAccess(name, deviceId);
+          if (!hasAccess) {
+            currentFolderName = name;
+            document.getElementById('requestModal').style.display = 'flex';
+            return;
+          }
+        } catch (error) {
+          console.error('Lỗi kiểm tra quyền:', error);
+          alert(`Lỗi: ${error.message}`);
+          return;
+        }
+
+        if (itemsDiv.style.display === 'none') {
+          itemsDiv.style.display = 'block';
           if (!loaded) {
-            childrenDiv.innerHTML = '⏳ Đang tải...';
+            itemsDiv.innerHTML = '<li>⏳ Đang tải...</li>';
             const items = await fetchFolderContents(folderId);
-            childrenDiv.innerHTML = '';
+            itemsDiv.innerHTML = '';
 
             if (items.length === 0) {
-              childrenDiv.innerHTML = '<i>Không có dữ liệu.</i>';
+              itemsDiv.innerHTML = '<i>Không có nội dung.</i>';
             } else {
               const subUl = document.createElement('ul');
               items.forEach(item => {
@@ -255,8 +379,8 @@
                 } else {
                   const fileLi = document.createElement('li');
                   const a = document.createElement('a');
-                  a.textContent = `📄 ${item.name}`;
-                  a.href = "#";
+                  a.textContent = `📖 ${item.name}`;
+                  a.href = '#';
                   a.className = 'file-link';
                   a.onclick = () => {
                     if (isImageFile(item.name)) {
@@ -266,7 +390,7 @@
                       document.getElementById('fileFrame').src = getFileViewerURL(item);
                       document.getElementById('navigationButtons').innerHTML = `
                         <div class="close-button">
-                          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                          <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
                         </div>
                       `;
                     }
@@ -275,17 +399,17 @@
                   subUl.appendChild(fileLi);
                 }
               });
-              childrenDiv.appendChild(subUl);
+              itemsDiv.appendChild(subUl);
             }
             loaded = true;
           }
         } else {
-          childrenDiv.style.display = 'none';
+          itemsDiv.style.display = 'none';
         }
       };
 
       li.appendChild(link);
-      li.appendChild(childrenDiv);
+      li.appendChild(itemsDiv);
       return li;
     }
 
@@ -303,9 +427,9 @@
           document.getElementById('fileViewer').style.display = 'block';
           document.getElementById('fileFrame').src = '';
           document.getElementById('navigationButtons').innerHTML = `
-            <p class="error-message">Không có ảnh trong thư mục.</p>
+            <p class="error-message">Không có ảnh trong danh sách này.</p>
             <div class="close-button">
-              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+              <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
             </div>
           `;
           return;
@@ -318,22 +442,22 @@
 
         document.getElementById('fileViewer').style.display = 'block';
         document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
-        document.getElementById('navigationButtons').innerHTML = `
+        document.getElementById('navigation').innerHTML = `
           <span class="image-name">${currentImages[currentImageIndex].name}</span>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
           </div>
         `;
       } catch (error) {
         console.error('Lỗi khi tải ảnh:', error);
         document.getElementById('fileViewer').style.display = 'block';
         document.getElementById('fileFrame').src = '';
-        document.getElementById('navigationButtons').innerHTML = `
-          <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
+        document.getElementById('navigation').innerHTML = `
+          <p class="error-message">Lỗi tải ảnh: ${error.message}</p>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
           </div>
         `;
       }
@@ -353,7 +477,7 @@
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
         <div class="close-button">
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
         </div>
       `;
     }
@@ -378,7 +502,7 @@
         folderList.innerHTML = '';
 
         if (folders.length === 0) {
-          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
+          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc nội dung nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
         } else {
           folders.forEach(item => {
             if (item.mimeType === 'application/vnd.google-apps.folder') {
@@ -386,8 +510,8 @@
             } else {
               const fileLi = document.createElement('li');
               const a = document.createElement('a');
-              a.textContent = `📄 ${item.name}`;
-              a.href = "#";
+              a.textContent = `📖 ${item.name}`;
+              a.href = '#';
               a.className = 'file-link';
               a.onclick = () => {
                 if (isImageFile(item.name)) {
@@ -397,7 +521,7 @@
                   document.getElementById('fileFrame').src = getFileViewerURL(item);
                   document.getElementById('navigationButtons').innerHTML = `
                     <div class="close-button">
-                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">Xóa</button>
                     </div>
                   `;
                 }
