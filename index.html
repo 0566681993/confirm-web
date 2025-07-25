@@ -246,46 +246,42 @@
     let currentFolderId = '';
     let currentFolderName = '';
 
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-    });
-
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
       if (e.key === 'F12' || 
           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
           (e.ctrlKey && e.key === 'U')) {
         e.preventDefault();
       }
     });
-
-    document.addEventListener('copy', function(e) {
-      e.preventDefault();
-    });
-
-    document.addEventListener('dragstart', function(e) {
-      e.preventDefault();
-    });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
 
     function getDeviceId() {
       let deviceId = localStorage.getItem('deviceId');
       if (!deviceId) {
-        deviceId = 'device-' + Math.random().toString(36).substr(2, 10);
-        localStorage.setItem('deviceId', deviceId');
+        deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deviceId', deviceId);
       }
       return deviceId;
     }
 
     async function checkFolderAccess(folderName, deviceId) {
-      const { data, error } = await supabase
-        .from('folder_access')
-        .select('approval')
-        .eq('folder_name', folderName)
-        .eq('device_id', deviceId)
-        .single();
-      if (error && error.code !== 'PGRST116') {
-        throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+      try {
+        const { data, error } = await supabase
+          .from('folder_access')
+          .select('approval')
+          .eq('folder_name', folderName)
+          .eq('device_id', deviceId)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+        }
+        return data && data.approval === true;
+      } catch (error) {
+        console.error('Lỗi kiểm tra quyền:', error);
+        throw error;
       }
-      return data && data.approval === true;
     }
 
     async function submitRequest() {
@@ -318,20 +314,22 @@
 
     async function fetchFolderContents(folderId) {
       try {
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'%2Bin+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}`);
+          const errorText = await res.text();
+          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
         }
         const data = await res.json();
         if (!data.files) {
-          throw new Error('Không nhận được danh sách file/thư mục từ Google Drive.');
+          throw new Error('Không nhận được danh sách file/thư mục. Thư mục có thể trống hoặc không được chia sẻ.');
         }
+        console.log('Dữ liệu từ Google Drive:', data.files);
         return data.files.sort((a, b) => a.name.localeCompare(b.name));
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
         const folderList = document.getElementById('folderList');
-        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}. Vui lòng kiểm tra hoặc quyền truy cập Google Drive.</li>`;
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
         return [];
       }
     }
@@ -340,7 +338,7 @@
       const li = document.createElement('li');
       const link = document.createElement('a');
       link.className = 'folder';
-      link.textContent = `📓 ${name}`;
+      link.textContent = `📂 ${name}`;
       link.href = '#';
 
       const childrenDiv = document.createElement('div');
@@ -357,55 +355,54 @@
             document.getElementById('requestModal').style.display = 'flex';
             return;
           }
-        } catch (error) {
-          console.error('Lỗi kiểm tra quyền:', error);
-          alert(`Lỗi: ${error.message}`);
-          return;
-        }
 
-        if (childrenDiv.style.display === 'none') {
-          childrenDiv.style.display = 'block';
-          if (!loaded) {
-            childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
-            const items = await fetchFolderContents(folderId);
-            childrenDiv.innerHTML = '';
+          if (childrenDiv.style.display === 'none') {
+            childrenDiv.style.display = 'block';
+            if (!loaded) {
+              childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
+              const items = await fetchFolderContents(folderId);
+              childrenDiv.innerHTML = '';
 
-            if (items.length === 0) {
-              childrenDiv.innerHTML = '<i>Không có nội dung.</i>';
-            } else {
-              const subUl = document.createElement('ul');
-              items.forEach(item => {
-                if (item.mimeType === 'application/vnd.google-apps.folder') {
-                  subUl.appendChild(createFolderItem(item.name, item.id));
-                } else {
-                  const fileLi = document.createElement('li');
-                  const a = document.createElement('a');
-                  a.textContent = `📖 ${item.name}`;
-                  a.href = '#';
-                  a.className = 'file-link';
-                  a.onclick = () => {
-                    if (isImageFile(item.name)) {
-                      showImageInViewer(folderId, item.id);
-                    } else {
-                      document.getElementById('fileViewer').style.display = 'block';
-                      document.getElementById('fileFrame').src = getFileViewerURL(item);
-                      document.getElementById('navigationButtons').innerHTML = `
-                        <div class="close-button">
-                          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
-                        </div>
-                      `;
-                    }
-                  };
-                  fileLi.appendChild(a);
-                  subUl.appendChild(fileLi);
-                }
-              });
-              childrenDiv.appendChild(subUl);
+              if (items.length === 0) {
+                childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';
+              } else {
+                const subUl = document.createElement('ul');
+                items.forEach(item => {
+                  if (item.mimeType === 'application/vnd.google-apps.folder') {
+                    subUl.appendChild(createFolderItem(item.name, item.id));
+                  } else {
+                    const fileLi = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.textContent = `📄 ${item.name}`;
+                    a.href = '#';
+                    a.className = 'file-link';
+                    a.onclick = () => {
+                      if (isImageFile(item.name)) {
+                        showImageInViewer(folderId, item.id);
+                      } else {
+                        document.getElementById('fileViewer').style.display = 'block';
+                        document.getElementById('fileFrame').src = getFileViewerURL(item);
+                        document.getElementById('navigationButtons').innerHTML = `
+                          <div class="close-button">
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                          </div>
+                        `;
+                      }
+                    };
+                    fileLi.appendChild(a);
+                    subUl.appendChild(fileLi);
+                  }
+                });
+                childrenDiv.appendChild(subUl);
+              }
+              loaded = true;
             }
-            loaded = true;
+          } else {
+            childrenDiv.style.display = 'none';
           }
-        } else {
-          childrenDiv.style.display = 'none';
+        } catch (error) {
+          console.error('Lỗi khi mở thư mục:', error);
+          alert(`Lỗi: ${error.message}`);
         }
       };
 
@@ -486,11 +483,9 @@
     function getFileViewerURL(file) {
       const fileId = file.id;
       const name = file.name.toLowerCase();
-
       if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
         return `https://drive.google.com/file/d/${fileId}/preview`;
       }
-
       return `https://drive.google.com/file/d/${fileId}/view`;
     }
 
@@ -503,7 +498,7 @@
         folderList.innerHTML = '';
 
         if (items.length === 0) {
-          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào.</li>';
+          folderList.innerHTML = '<li class="error-message">Thư mục rỗng hoặc không có quyền truy cập.</li>';
         } else {
           items.forEach(item => {
             if (item.mimeType === 'application/vnd.google-apps.folder') {
@@ -511,7 +506,7 @@
             } else {
               const fileLi = document.createElement('li');
               const a = document.createElement('a');
-              a.textContent = `📖 ${item.name}`;
+              a.textContent = `📄 ${item.name}`;
               a.href = '#';
               a.className = 'file-link';
               a.onclick = () => {
@@ -534,7 +529,7 @@
         }
       } catch (error) {
         console.error('Lỗi khởi tạo:', error);
-        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc cấu hình Google Drive.</li>`;
+        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;
       }
     }
 
