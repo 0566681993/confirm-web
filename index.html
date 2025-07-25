@@ -11,7 +11,7 @@
       margin: 0;
       user-select: none;
       overflow-x: hidden;
-      background: #f0f0f0; /* Thêm nền sáng để phát hiện trang trắng */
+      background: #f0f0f0; /* Nền sáng để phát hiện trang trắng */
     }
 
     h2 {
@@ -81,28 +81,23 @@
       bottom: 2px;
       left: 0;
       right: 0;
-      display: flex; /* Sử dụng Flexbox để căn chỉnh */
+      display: flex;
       align-items: center;
       justify-content: space-between; /* Khoảng cách đều giữa các phần tử */
       background: transparent; /* Nền trong suốt */
       padding: 5px 10px;
       z-index: 1001;
+      gap: 10px; /* Khoảng cách đều giữa các phần tử */
     }
 
     .navigation .image-name {
       color: #333;
       font-size: clamp(10px, 2.5vw, 12px);
-      flex: 1; /* Chiếm không gian bên trái */
-      text-align: left; /* Căn trái tên ảnh */
+      text-align: left;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis; /* Cắt ngắn tên dài */
       max-width: 25%; /* Giới hạn chiều rộng tên ảnh */
-    }
-
-    .navigation .nav-buttons {
-      display: flex;
-      justify-content: center; /* Căn giữa nút Trước/Tiếp */
       flex: 1;
     }
 
@@ -114,7 +109,8 @@
       border-radius: 3px;
       cursor: pointer;
       font-size: clamp(12px, 3vw, 14px);
-      margin: 0 20px; /* Khoảng cách giữa các nút */
+      flex: 1; /* Đảm bảo nút chiếm không gian đều */
+      max-width: 80px; /* Giới hạn chiều rộng nút */
     }
 
     .navigation button:hover {
@@ -123,7 +119,8 @@
 
     .navigation .close-button {
       flex: 1;
-      text-align: right; /* Căn phải nút Đóng */
+      text-align: right;
+      max-width: 80px; /* Giới hạn chiều rộng nút Đóng */
     }
 
     .error-message {
@@ -155,12 +152,20 @@
       .navigation button {
         padding: 4px 8px;
         font-size: clamp(10px, 2.8vw, 12px);
-        margin: 0 8px;
+        max-width: 60px; /* Thu nhỏ nút trên di động */
       }
 
       .navigation .image-name {
         font-size: clamp(8px, 2.2vw, 10px);
         max-width: 20%;
+      }
+
+      .navigation .close-button {
+        max-width: 60px;
+      }
+
+      .navigation {
+        gap: 5px; /* Giảm khoảng cách trên di động */
       }
     }
   </style>
@@ -315,10 +320,8 @@
         document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
         document.getElementById('navigationButtons').innerHTML = `
           <span class="image-name">${currentImages[currentImageIndex].name}</span>
-          <div class="nav-buttons">
-            <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
-            <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-          </div>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
           <div class="close-button">
             <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
           </div>
@@ -347,10 +350,8 @@
       document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
       document.getElementById('navigationButtons').innerHTML = `
         <span class="image-name">${currentImages[currentImageIndex].name}</span>
-        <div class="nav-buttons">
-          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
-          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-        </div>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
         <div class="close-button">
           <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
         </div>
