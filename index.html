@@ -11,6 +11,7 @@
       margin: 0;
       user-select: none;
       overflow-x: hidden;
+      background: #f0f0f0; /* Thêm nền sáng để dễ nhận biết nếu trắng */
     }
 
     h2 {
@@ -66,24 +67,41 @@
       height: 100vh;
       background: #fff;
       z-index: 1000;
+      display: flex;
+      flex-direction: column; /* Iframe trên, navigation dưới */
     }
 
     #fileFrame {
       border: none;
       width: 100%;
-      height: calc(100% - 40px); /* Để lại không gian cho nút điều hướng và tên ảnh */
+      flex-grow: 1; /* Iframe chiếm toàn bộ không gian còn lại */
       display: block;
     }
 
     .navigation {
-      position: fixed;
-      bottom: 2px;
-      left: 0;
-      right: 0;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* Khoảng cách đều giữa các phần tử */
       background: transparent; /* Nền trong suốt */
-      padding: 5px;
-      z-index: 1001; /* Đảm bảo nút và tên ảnh ở trên iframe */
+      padding: 5px 10px;
+      z-index: 1001; /* Đảm bảo navigation ở trên iframe */
+    }
+
+    .navigation .image-name {
+      color: #333; /* Màu chữ tên ảnh */
+      font-size: clamp(10px, 2.5vw, 12px); /* Kích thước chữ nhỏ */
+      flex: 1; /* Chiếm không gian bên trái */
+      text-align: left;
+      white-space: nowrap; /* Ngăn tên dài làm rối bố cục */
+      overflow: hidden;
+      text-overflow: ellipsis; /* Cắt ngắn tên dài */
+      max-width: 25%; /* Giới hạn chiều rộng tên ảnh */
+    }
+
+    .navigation .nav-buttons {
+      display: flex;
+      justify-content: center; /* Căn giữa nút Trước/Tiếp */
+      flex: 1;
     }
 
     .navigation button {
@@ -101,11 +119,9 @@
       background: #e60000;
     }
 
-    .navigation .image-name {
-      color: #333; /* Màu chữ tên ảnh */
-      font-size: clamp(10px, 2.5vw, 12px); /* Kích thước chữ nhỏ */
-      margin-bottom: 5px; /* Khoảng cách giữa tên ảnh và nút */
-      display: block;
+    .navigation .close-button {
+      flex: 1;
+      text-align: right; /* Căn phải nút Đóng */
     }
 
     .error-message {
@@ -142,6 +158,7 @@
 
       .navigation .image-name {
         font-size: clamp(8px, 2.2vw, 10px); /* Chữ nhỏ hơn trên di động */
+        max-width: 20%; /* Giới hạn chiều rộng tên ảnh trên di động */
       }
     }
   </style>
@@ -187,7 +204,7 @@
 
     async function fetchFolderContents(folderId) {
       try {
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         if (!res.ok) {
           throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra API Key hoặc quyền truy cập thư mục.`);
@@ -243,10 +260,12 @@
                     if (isImageFile(item.name)) {
                       showImageInViewer(folderId, item.id);
                     } else {
-                      document.getElementById('fileViewer').style.display = 'block';
+                      document.getElementById('fileViewer').style.display = 'flex';
                       document.getElementById('fileFrame').src = getFileViewerURL(item);
                       document.getElementById('navigationButtons').innerHTML = `
-                        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                        <div class="close-button">
+                          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                        </div>
                       `;
                     }
                   };
@@ -280,11 +299,13 @@
         currentImages = (await fetchFolderContents(folderId)).filter(item => isImageFile(item.name));
         
         if (currentImages.length === 0) {
-          document.getElementById('fileViewer').style.display = 'block';
+          document.getElementById('fileViewer').style.display = 'flex';
           document.getElementById('fileFrame').src = '';
           document.getElementById('navigationButtons').innerHTML = `
             <p class="error-message">Không có ảnh trong thư mục.</p>
-            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            <div class="close-button">
+              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            </div>
           `;
           return;
         }
@@ -294,21 +315,27 @@
           currentImageIndex = 0;
         }
 
-        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileViewer').style.display = 'flex';
         document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
         document.getElementById('navigationButtons').innerHTML = `
           <span class="image-name">${currentImages[currentImageIndex].name}</span>
-          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
-          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <div class="nav-buttons">
+            <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+            <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
+          </div>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
         `;
       } catch (error) {
         console.error('Lỗi khi tải ảnh:', error);
-        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileViewer').style.display = 'flex';
         document.getElementById('fileFrame').src = '';
         document.getElementById('navigationButtons').innerHTML = `
           <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
         `;
       }
     }
@@ -324,9 +351,13 @@
       document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
       document.getElementById('navigationButtons').innerHTML = `
         <span class="image-name">${currentImages[currentImageIndex].name}</span>
-        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
-        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+        <div class="nav-buttons">
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
+        </div>
+        <div class="close-button">
+          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+        </div>
       `;
     }
 
@@ -342,39 +373,46 @@
     }
 
     async function init() {
-      const folderList = document.getElementById('folderList');
-      folderList.innerHTML = 'Đang tải...';
+      try {
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = 'Đang tải...';
 
-      const folders = await fetchFolderContents(ROOT_FOLDER_ID);
-      folderList.innerHTML = '';
+        const folders = await fetchFolderContents(ROOT_FOLDER_ID);
+        folderList.innerHTML = '';
 
-      if (folders.length === 0) {
-        folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
-      } else {
-        folders.forEach(item => {
-          if (item.mimeType === 'application/vnd.google-apps.folder') {
-            folderList.appendChild(createFolderItem(item.name, item.id));
-          } else {
-            const fileLi = document.createElement('li');
-            const a = document.createElement('a');
-            a.textContent = `📄 ${item.name}`;
-            a.href = "#";
-            a.className = 'file-link';
-            a.onclick = () => {
-              if (isImageFile(item.name)) {
-                showImageInViewer(ROOT_FOLDER_ID, item.id);
-              } else {
-                document.getElementById('fileViewer').style.display = 'block';
-                document.getElementById('fileFrame').src = getFileViewerURL(item);
-                document.getElementById('navigationButtons').innerHTML = `
-                  <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
-                `;
-              }
-            };
-            fileLi.appendChild(a);
-            folderList.appendChild(fileLi);
-          }
-        });
+        if (folders.length === 0) {
+          folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
+        } else {
+          folders.forEach(item => {
+            if (item.mimeType === 'application/vnd.google-apps.folder') {
+              folderList.appendChild(createFolderItem(item.name, item.id));
+            } else {
+              const fileLi = document.createElement('li');
+              const a = document.createElement('a');
+              a.textContent = `📄 ${item.name}`;
+              a.href = "#";
+              a.className = 'file-link';
+              a.onclick = () => {
+                if (isImageFile(item.name)) {
+                  showImageInViewer(ROOT_FOLDER_ID, item.id);
+                } else {
+                  document.getElementById('fileViewer').style.display = 'flex';
+                  document.getElementById('fileFrame').src = getFileViewerURL(item);
+                  document.getElementById('navigationButtons').innerHTML = `
+                    <div class="close-button">
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                    </div>
+                  `;
+                }
+              };
+              fileLi.appendChild(a);
+              folderList.appendChild(fileLi);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khởi tạo:', error);
+        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}. Vui lòng kiểm tra kết nối mạng hoặc cấu hình Google Drive.</li>`;
       }
     }
 
