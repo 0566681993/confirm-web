@@ -217,8 +217,8 @@
   </style>
 </head>
 <body>
-  <h2>📁 Thư mục Google Drive</h2>
-  <ul id="folderList">Đang tải...</ul>
+  <h2> 📙 DANH SÁCH TRUYỆN 📙</h2>
+  <ul id="folderList">⏳ Đang tải...</ul>
   <div id="fileViewer">
     <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
     <div class="navigation" id="navigationButtons"></div>
@@ -337,7 +337,7 @@
       const li = document.createElement('li');
       const link = document.createElement('a');
       link.className = 'folder';
-      link.textContent = `📂 ${name}`;
+      link.textContent = `📚 ${name}`;
       link.href = '#';
 
       const childrenDiv = document.createElement('div');
