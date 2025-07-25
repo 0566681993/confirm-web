@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TRUYỆN DỊCH</title>
+  <title>📙TRUYỆN DỊCH📙</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -229,7 +229,7 @@
   </style>
 </head>
 <body>
-  <h2> 📙 DANH SÁCH TRUYỆN 📙</h2>
+  <h2> 📙 DANH SÁCH TRUYỆN DỊCH 📙</h2>
   <ul id="folderList">⏳ Đang tải...</ul>
   <div id="fileViewer">
     <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
@@ -345,7 +345,7 @@
 
         if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
 
-        alert('Yêu cầu đã được gửi. Vui lòng chờ phê duyệt.');
+        alert('Yêu cầu đã được gửi. Vui lòng chờ duyệt.');
         document.getElementById('requestModal').style.display = 'none';
         document.getElementById('userNameInput').value = '';
       } catch (error) {
@@ -574,7 +574,6 @@
         document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;
       }
     }
-
     init();
   </script>
 </body>
