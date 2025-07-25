@@ -11,7 +11,7 @@
       margin: 0;
       user-select: none;
       overflow-x: hidden;
-      background: #f0f0f0; /* Nền sáng để phát hiện trang trắng */
+      background: #f0f0f0; /* Thêm nền sáng để phát hiện trang trắng */
     }
 
     h2 {
@@ -67,41 +67,42 @@
       height: 100vh;
       background: #fff;
       z-index: 1000;
-      display: flex;
-      flex-direction: column; /* Iframe trên, navigation dưới */
     }
 
     #fileFrame {
       border: none;
       width: 100%;
-      height: calc(100% - 40px); /* Để lại không gian cho navigation */
+      height: calc(100% - 40px); /* Để lại không gian cho nút điều hướng */
       display: block;
     }
 
     .navigation {
-      display: flex;
+      position: fixed;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      display: flex; /* Sử dụng Flexbox để căn chỉnh */
       align-items: center;
       justify-content: space-between; /* Khoảng cách đều giữa các phần tử */
       background: transparent; /* Nền trong suốt */
       padding: 5px 10px;
       z-index: 1001;
-      height: 40px; /* Đảm bảo chiều cao cố định cho navigation */
     }
 
     .navigation .image-name {
       color: #333;
       font-size: clamp(10px, 2.5vw, 12px);
-      flex: 1;
-      text-align: left;
+      flex: 1; /* Chiếm không gian bên trái */
+      text-align: left; /* Căn trái tên ảnh */
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 25%;
+      text-overflow: ellipsis; /* Cắt ngắn tên dài */
+      max-width: 25%; /* Giới hạn chiều rộng tên ảnh */
     }
 
     .navigation .nav-buttons {
       display: flex;
-      justify-content: center;
+      justify-content: center; /* Căn giữa nút Trước/Tiếp */
       flex: 1;
     }
 
@@ -122,7 +123,7 @@
 
     .navigation .close-button {
       flex: 1;
-      text-align: right;
+      text-align: right; /* Căn phải nút Đóng */
     }
 
     .error-message {
