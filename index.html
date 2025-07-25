@@ -11,6 +11,7 @@
       margin: 0;
       user-select: none;
       overflow-x: hidden;
+      background: #f0f0f0;
     }
 
     h2 {
@@ -56,7 +57,6 @@
       text-decoration: underline;
     }
 
-    /* File Viewer (cho cả PDF và ảnh) */
     #fileViewer {
       display: none;
       position: fixed;
@@ -71,7 +71,7 @@
     #fileFrame {
       border: none;
       width: 100%;
-      height: calc(100% - 40px); /* Để lại không gian cho nút điều hướng và tên ảnh */
+      height: calc(100% - 40px);
       display: block;
     }
 
@@ -80,32 +80,46 @@
       bottom: 2px;
       left: 0;
       right: 0;
-      text-align: center;
-      background: transparent; /* Nền trong suốt */
-      padding: 5px;
-      z-index: 1001; /* Đảm bảo nút và tên ảnh ở trên iframe */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+      padding: 5px 10px;
+      z-index: 1001;
+      gap: 10px;
+    }
+
+    .navigation .image-name {
+      color: #333;
+      font-size: clamp(10px, 2.5vw, 12px);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 25%;
+      flex: 1;
     }
 
     .navigation button {
       background: #ff4d4d;
       color: white;
       border: none;
-      padding: 5px 10px; /* Thu nhỏ nút */
+      padding: 5px 10px;
       border-radius: 3px;
       cursor: pointer;
-      font-size: clamp(12px, 3vw, 14px); /* Thu nhỏ chữ */
-      margin: 0 20px; /* Khoảng cách giữa các nút */
+      font-size: clamp(12px, 3vw, 14px);
+      flex: 1;
+      max-width: 80px;
     }
 
     .navigation button:hover {
       background: #e60000;
     }
 
-    .navigation .image-name {
-      color: #333; /* Màu chữ tên ảnh */
-      font-size: clamp(10px, 2.5vw, 12px); /* Kích thước chữ nhỏ */
-      margin-bottom: 5px; /* Khoảng cách giữa tên ảnh và nút */
-      display: block;
+    .navigation .close-button {
+      flex: 1;
+      text-align: right;
+      max-width: 80px;
     }
 
     .error-message {
@@ -115,7 +129,49 @@
       margin: 10px 0;
     }
 
-    /* Media Queries cho màn hình nhỏ */
+    #requestModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1002;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .modal-content button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background: #e60000;
+    }
+
     @media screen and (max-width: 600px) {
       body {
         padding: 10px;
@@ -137,11 +193,25 @@
       .navigation button {
         padding: 4px 8px;
         font-size: clamp(10px, 2.8vw, 12px);
-        margin: 0 8px; /* Khoảng cách nhỏ hơn trên di động */
+        max-width: 60px;
       }
 
       .navigation .image-name {
-        font-size: clamp(8px, 2.2vw, 10px); /* Chữ nhỏ hơn trên di động */
+        font-size: clamp(8px, 2.2vw, 10px);
+        max-width: 20%;
+      }
+
+      .navigation .close-button {
+        max-width: 60px;
+      }
+
+      .navigation {
+        gap: 5px;
+      }
+
+      .modal-content {
+        padding: 15px;
+        max-width: 250px;
       }
     }
   </style>
@@ -153,55 +223,112 @@
     <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
     <div class="navigation" id="navigationButtons"></div>
   </div>
+  <div id="requestModal">
+    <div class="modal-content">
+      <h3>Yêu cầu truy cập</h3>
+      <p>Nhập tên của bạn:</p>
+      <input type="text" id="userNameInput" placeholder="Tên của bạn" />
+      <button onclick="submitRequest()">Gửi yêu cầu</button>
+    </div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
     const ROOT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
+    const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
 
-    // Biến toàn cục để lưu danh sách ảnh và chỉ số hiện tại
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     let currentImages = [];
     let currentImageIndex = 0;
     let currentFolderId = '';
+    let currentFolderName = '';
 
-    // Vô hiệu hóa chuột phải và sự kiện cảm ứng
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-    });
-
-    // Vô hiệu hóa F12, Ctrl+Shift+I, Ctrl+U
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
       if (e.key === 'F12' || 
           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
           (e.ctrlKey && e.key === 'U')) {
         e.preventDefault();
       }
     });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
 
-    // Vô hiệu hóa sao chép và kéo-thả
-    document.addEventListener('copy', function(e) {
-      e.preventDefault();
-    });
-    document.addEventListener('dragstart', function(e) {
-      e.preventDefault();
-    });
+    function getDeviceId() {
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deviceId', deviceId);
+      }
+      return deviceId;
+    }
+
+    async function checkFolderAccess(folderName, deviceId) {
+      try {
+        const { data, error } = await supabase
+          .from('folder_access')
+          .select('approval')
+          .eq('folder_name', folderName)
+          .eq('device_id', deviceId)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+        }
+        return data && data.approval === true;
+      } catch (error) {
+        console.error('Lỗi kiểm tra quyền:', error);
+        throw error;
+      }
+    }
+
+    async function submitRequest() {
+      const userName = document.getElementById('userNameInput').value.trim();
+      if (!userName) {
+        alert('Vui lòng nhập tên!');
+        return;
+      }
+
+      try {
+        const deviceId = getDeviceId();
+        const { error } = await supabase
+          .from('folder_access')
+          .insert({
+            folder_name: currentFolderName,
+            device_id: deviceId,
+            user_name: userName,
+            approval: false
+          });
+        if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
+
+        alert('Yêu cầu đã được gửi. Vui lòng chờ phê duyệt.');
+        document.getElementById('requestModal').style.display = 'none';
+        document.getElementById('userNameInput').value = '';
+      } catch (error) {
+        console.error('Lỗi gửi yêu cầu:', error);
+        alert(`Lỗi: ${error.message}`);
+      }
+    }
 
     async function fetchFolderContents(folderId) {
       try {
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`Lỗi API: ${res.status} ${res.statusText}. Kiểm tra API Key hoặc quyền truy cập thư mục.`);
+          const errorText = await res.text();
+          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
         }
         const data = await res.json();
         if (!data.files) {
-          throw new Error('Không nhận được danh sách file từ Google Drive. Thư mục có thể trống hoặc không được chia sẻ.');
+          throw new Error('Không nhận được danh sách file/thư mục.');
         }
-        // Sắp xếp file theo tên (A-Z)
         return data.files.sort((a, b) => a.name.localeCompare(b.name));
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
         const folderList = document.getElementById('folderList');
-        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}. Vui lòng kiểm tra API Key, quyền truy cập thư mục, hoặc kết nối mạng.</li>`;
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
         return [];
       }
     }
@@ -211,7 +338,7 @@
       const link = document.createElement('a');
       link.className = 'folder';
       link.textContent = `📂 ${name}`;
-      link.href = "#";
+      link.href = '#';
 
       const childrenDiv = document.createElement('div');
       childrenDiv.className = 'children';
@@ -219,48 +346,63 @@
       let loaded = false;
 
       link.onclick = async () => {
-        if (childrenDiv.style.display === 'none') {
-          childrenDiv.style.display = 'block';
-          if (!loaded) {
-            childrenDiv.innerHTML = '⏳ Đang tải...';
-            const items = await fetchFolderContents(folderId);
-            childrenDiv.innerHTML = '';
-
-            if (items.length === 0) {
-              childrenDiv.innerHTML = '<i>Không có dữ liệu.</i>';
-            } else {
-              const subUl = document.createElement('ul');
-              items.forEach(item => {
-                if (item.mimeType === 'application/vnd.google-apps.folder') {
-                  subUl.appendChild(createFolderItem(item.name, item.id));
-                } else {
-                  const fileLi = document.createElement('li');
-                  const a = document.createElement('a');
-                  a.textContent = `📄 ${item.name}`;
-                  a.href = "#";
-                  a.className = 'file-link';
-                  a.onclick = () => {
-                    if (isImageFile(item.name)) {
-                      showImageInViewer(folderId, item.id);
-                    } else {
-                      document.getElementById('fileViewer').style.display = 'block';
-                      document.getElementById('fileFrame').src = getFileViewerURL(item);
-                      document.getElementById('navigationButtons').innerHTML = `
-                        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
-                      `;
-                    }
-                  };
-                  fileLi.appendChild(a);
-                  subUl.appendChild(fileLi);
-                }
-              });
-              childrenDiv.appendChild(subUl);
-            }
-
-            loaded = true;
+        const deviceId = getDeviceId();
+        try {
+          const hasAccess = await checkFolderAccess(name, deviceId);
+          if (!hasAccess) {
+            currentFolderName = name;
+            document.getElementById('requestModal').style.display = 'flex';
+            return;
           }
-        } else {
-          childrenDiv.style.display = 'none';
+
+          if (childrenDiv.style.display === 'none') {
+            childrenDiv.style.display = 'block';
+            if (!loaded) {
+              childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
+              const items = await fetchFolderContents(folderId);
+              childrenDiv.innerHTML = '';
+
+              if (items.length === 0) {
+                childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';
+              } else {
+                const subUl = document.createElement('ul');
+                items.forEach(item => {
+                  if (item.mimeType === 'application/vnd.google-apps.folder') {
+                    subUl.appendChild(createFolderItem(item.name, item.id));
+                  } else {
+                    const fileLi = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.textContent = `📄 ${item.name}`;
+                    a.href = '#';
+                    a.className = 'file-link';
+                    a.onclick = () => {
+                      if (isImageFile(item.name)) {
+                        showImageInViewer(folderId, item.id);
+                      } else {
+                        document.getElementById('fileViewer').style.display = 'block';
+                        document.getElementById('fileFrame').src = getFileViewerURL(item);
+                        document.getElementById('navigationButtons').innerHTML = `
+                          <div class="close-button">
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                          </div>
+                        `;
+                      }
+                    };
+                    fileLi.appendChild(a);
+                    subUl.appendChild(fileLi);
+                  }
+                });
+                childrenDiv.appendChild(subUl);
+              }
+              loaded = true;
+            }
+          } else {
+            childrenDiv.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Lỗi khi mở thư mục:', error);
+          localStorage.setItem('errorFolderName', name);
+          window.location.href = 'email.html';
         }
       };
 
@@ -284,7 +426,9 @@
           document.getElementById('fileFrame').src = '';
           document.getElementById('navigationButtons').innerHTML = `
             <p class="error-message">Không có ảnh trong thư mục.</p>
-            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            <div class="close-button">
+              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            </div>
           `;
           return;
         }
@@ -300,7 +444,9 @@
           <span class="image-name">${currentImages[currentImageIndex].name}</span>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
         `;
       } catch (error) {
         console.error('Lỗi khi tải ảnh:', error);
@@ -308,7 +454,9 @@
         document.getElementById('fileFrame').src = '';
         document.getElementById('navigationButtons').innerHTML = `
           <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
         `;
       }
     }
@@ -326,55 +474,62 @@
         <span class="image-name">${currentImages[currentImageIndex].name}</span>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
-        <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+        <div class="close-button">
+          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+        </div>
       `;
     }
 
     function getFileViewerURL(file) {
       const fileId = file.id;
       const name = file.name.toLowerCase();
-
       if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
         return `https://drive.google.com/file/d/${fileId}/preview`;
       }
-
       return `https://drive.google.com/file/d/${fileId}/view`;
     }
 
     async function init() {
-      const folderList = document.getElementById('folderList');
-      folderList.innerHTML = 'Đang tải...';
+      try {
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = 'Đang tải...';
 
-      const folders = await fetchFolderContents(ROOT_FOLDER_ID);
-      folderList.innerHTML = '';
+        const items = await fetchFolderContents(ROOT_FOLDER_ID);
+        folderList.innerHTML = '';
 
-      if (folders.length === 0) {
-        folderList.innerHTML = '<li class="error-message">Không có thư mục hoặc file nào. Vui lòng kiểm tra quyền truy cập hoặc ID thư mục.</li>';
-      } else {
-        folders.forEach(item => {
-          if (item.mimeType === 'application/vnd.google-apps.folder') {
-            folderList.appendChild(createFolderItem(item.name, item.id));
-          } else {
-            const fileLi = document.createElement('li');
-            const a = document.createElement('a');
-            a.textContent = `📄 ${item.name}`;
-            a.href = "#";
-            a.className = 'file-link';
-            a.onclick = () => {
-              if (isImageFile(item.name)) {
-                showImageInViewer(ROOT_FOLDER_ID, item.id);
-              } else {
-                document.getElementById('fileViewer').style.display = 'block';
-                document.getElementById('fileFrame').src = getFileViewerURL(item);
-                document.getElementById('navigationButtons').innerHTML = `
-                  <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
-                `;
-              }
-            };
-            fileLi.appendChild(a);
-            folderList.appendChild(fileLi);
-          }
-        });
+        if (items.length === 0) {
+          folderList.innerHTML = '<li class="error-message">Thư mục rỗng hoặc không có quyền truy cập.</li>';
+        } else {
+          items.forEach(item => {
+            if (item.mimeType === 'application/vnd.google-apps.folder') {
+              folderList.appendChild(createFolderItem(item.name, item.id));
+            } else {
+              const fileLi = document.createElement('li');
+              const a = document.createElement('a');
+              a.textContent = `📄 ${item.name}`;
+              a.href = '#';
+              a.className = 'file-link';
+              a.onclick = () => {
+                if (isImageFile(item.name)) {
+                  showImageInViewer(ROOT_FOLDER_ID, item.id);
+                } else {
+                  document.getElementById('fileViewer').style.display = 'block';
+                  document.getElementById('fileFrame').src = getFileViewerURL(item);
+                  document.getElementById('navigationButtons').innerHTML = `
+                    <div class="close-button">
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                    </div>
+                  `;
+                }
+              };
+              fileLi.appendChild(a);
+              folderList.appendChild(fileLi);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khởi tạo:', error);
+        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;
       }
     }
 
@@ -382,4 +537,3 @@
   </script>
 </body>
 </html>
-
