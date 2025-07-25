@@ -2,64 +2,580 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Hiển thị dữ l</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRUYỆN DỊCH</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      margin: 0;
+      user-select: none;
+      overflow-x: hidden;
+      background: #f0f0f0;
+    }
+
+    h2 {
+      font-size: clamp(20px, 5vw, 24px);
+      margin-bottom: 15px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 10px;
+    }
+
+    li {
+      margin: 10px 0;
+    }
+
+    a.folder {
+      font-size: clamp(16px, 4vw, 18px);
+      color: #0066cc;
+      font-weight: bold;
+      cursor: pointer;
+      display: block;
+      text-decoration: none;
+    }
+
+    a.folder:hover {
+      color: #ff6600;
+    }
+
+    .children {
+      margin-left: 15px;
+      font-size: clamp(14px, 3.5vw, 16px);
+      display: none;
+    }
+
+    .file-link {
+      text-decoration: none;
+      color: green;
+      display: block;
+    }
+
+    .file-link:hover {
+      text-decoration: underline;
+    }
+
+    #fileViewer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fff;
+      z-index: 1000;
+    }
+
+    #fileFrame {
+      border: none;
+      width: 100%;
+      height: calc(100% - 40px);
+      display: block;
+    }
+
+    .navigation {
+      position: fixed;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+      padding: 5px 10px;
+      z-index: 1001;
+      gap: 10px;
+    }
+
+    .navigation .image-name {
+      color: #333;
+      font-size: clamp(10px, 2.5vw, 12px);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 25%;
+      flex: 1;
+    }
+
+    .navigation button {
+      background: 5px solid #ff4d4d;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: clamp(10px, 2vw, 5px); 
+      cursor: pointer;
+      font-size: clamp(12px, 3vw, 14px);
+      flex: 1;
+      max-width: 80px;
+    }
+
+    .navigation button:hover {
+      background: #e60000;
+    }
+
+    .navigation .close-button {
+      flex: 1;
+      text-align: center;
+      max-width: 80px;
+    }
+
+    .error-message {
+      color: red;
+      font-size: clamp(10px, 3.5vw, 16px);
+      text-align: center;
+      margin: 10px;
+    }
+
+    #requestModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0, 0.5);
+      z-index: 1002;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: clamp(10px, 2vw, 5px);
+      text-align: left;
+      max-width: 300px;
+      width: auto;
+    }
+
+    .modal-content h3 {
+      font-size: clamp(10px, 2vw, 14px);
+      margin-bottom: 10px;
+    }
+
+    .modal-content p {
+      font-size: clamp(10px, 3.5vw, 12px);
+      margin-bottom: 10px;
+    }
+
+    .modal-content input {
+      width: auto;
+      padding: 10px;
+      margin: 10px 0;
+      border: clamp(1px, 0.2vw, 2px); solid #ccc;
+      border-radius: clamp(3px, 0.5vw, 3px);
+      font-size: clamp(10px, 3vw, 12px);
+    }
+
+    .modal-content {
+      background: auto;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: clamp(3px, 0.5vw, 3px);
+      cursor: pointer;
+      font-size: clamp(10px, 3vw, 12px);
+    }
+
+    .modal-content {
+      background-color: #e60000;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      h2 {
+        font-size: clamp(18px, 4.5vw, 20px);
+      }
+
+      a.folder {
+        font-size: clamp(14px, 3.8vw, 16px);
+      }
+
+      .children {
+        margin-left: 10px;
+        font-size: clamp(12px, 3.2vw, 14px);
+      }
+
+      .navigation button {
+        padding: 4px 8px;
+        font-size: clamp(10px, 2.8vw, 12px);
+        max-width: 60px;
+      }
+
+      .navigation .image-name {
+        font-size: clamp(8px, 2.2vw, 10px);
+        max-width: 20%;
+      }
+
+      .navigation .close-button {
+        max-width: 60px;
+      }
+
+      .navigation {
+        gap: 5px;
+      }
+
+      .modal-content {
+        padding: 15px;
+        max-width: 250px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Dữ liệu từ Supabase</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Thư mục</th>
-        <th>Thiết bị</th>
-        <th>Được duyệt</th>
-      </tr>
-    </thead>
-    <tbody id="data-body">
-      <tr><td colspan="3">Đang tải...</td></tr>
-    </tbody>
-  </table>
+  <h2> 📙 DANH SÁCH TRUYỆN 📙</h2>
+  <ul id="folderList">⏳ Đang tải...</ul>
+  <div id="fileViewer">
+    <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+    <div class="navigation" id="navigationButtons"></div>
+  </div>
+  <div id="requestModal">
+    <div class="modal-content">
+      <h3>Yêu cầu truy cập</h3>
+      <p>Nhập tên của bạn:</p>
+      <input type="text" id="userNameInput" placeholder="Tên của bạn" />
+      <button onclick="submitRequest()">Gửi yêu cầu</button>
+    </div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
+    const ROOT_FOLDER_ID = '1mbA2FZ3cN0lPf9eFyV4Pylw54BEL6ymi';
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function loadData() {
-      const tbody = document.getElementById('data-body');
-      tbody.innerHTML = '<tr><td colspan="3">Đang tải...</td></tr>';
+    let currentImages = [];
+    let currentImageIndex = 0;
+    let currentFolderId = '';
+    let currentFolderName = '';
 
-      const { data, error } = await supabase
-        .from('approved_access')
-        .select('folder_name, device_id, approval');
-
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="3" style="color:red;">Lỗi: ${error.message}</td></tr>`;
-        return;
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
+          (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
       }
+    });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
 
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3">Không có dữ liệu</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = data.map(row => `
-        <tr>
-          <td>${row.folder_name}</td>
-          <td>${row.device_id}</td>
-          <td>${row.approval ? '✅' : '❌'}</td>
-        </tr>
-      `).join('');
+    function normalizeFolderName(name) {
+      return name.toLowerCase().trim().replace(/\s+/g, ' ');
     }
 
-    loadData();
+    function getDeviceId() {
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem('deviceId', deviceId);
+      }
+      return deviceId;
+    }
+
+    async function checkFolderAccess(folderName, deviceId) {
+      try {
+        const normalizedFolderName = normalizeFolderName(folderName);
+        console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });
+        const { data, error } = await supabase
+          .from('approved_access')
+          .select('approval')
+          .eq('folder_name', normalizedFolderName)
+          .eq('device_id', deviceId)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+        }
+        console.log('Supabase response:', { data, error });
+        return data && data.approval === true;
+      } catch (error) {
+        console.error('Lỗi kiểm tra quyền:', error);
+        throw error;
+      }
+    }
+
+    async function submitRequest() {
+      const userName = document.getElementById('userNameInput').value.trim();
+      if (!userName) {
+        alert('Vui lòng nhập tên!');
+        return;
+      }
+
+      try {
+        const deviceId = getDeviceId();
+        const normalizedFolderName = normalizeFolderName(currentFolderName);
+
+        // Kiểm tra xem yêu cầu đã tồn tại chưa
+        const { data: existingRequest, error: checkError } = await supabase
+          .from('approved_access')
+          .select('approval')
+          .eq('folder_name', normalizedFolderName)
+          .eq('device_id', deviceId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra yêu cầu: ${checkError.message}`);
+        }
+
+        if (existingRequest) {
+          alert(existingRequest.approval 
+            ? 'Bạn đã có quyền truy cập thư mục này!'
+            : 'Yêu cầu truy cập đã được gửi trước đó. Vui lòng chờ phê duyệt.');
+          document.getElementById('requestModal').style.display = 'none';
+          document.getElementById('userNameInput').value = '';
+          return;
+        }
+
+        const { error } = await supabase
+          .from('approved_access')
+          .insert({
+            folder_name: normalizedFolderName,
+            device_id: deviceId,
+            approval: false
+          });
+
+        if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
+
+        alert('Yêu cầu đã được gửi. Vui lòng chờ phê duyệt.');
+        document.getElementById('requestModal').style.display = 'none';
+        document.getElementById('userNameInput').value = '';
+      } catch (error) {
+        console.error('Lỗi gửi yêu cầu:', error);
+        alert(`Lỗi: ${error.message}`);
+      }
+    }
+
+    async function fetchFolderContents(folderId) {
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
+        }
+        const data = await res.json();
+        if (!data.files) {
+          throw new Error('Không nhận được danh sách file/thư mục.');
+        }
+        return data.files.sort((a, b) => a.name.localeCompare(b.name));
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
+        return [];
+      }
+    }
+
+    function createFolderItem(name, folderId) {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      link.className = 'folder';
+      link.textContent = `📚 ${name}`;
+      link.href = '#';
+
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'children';
+
+      let loaded = false;
+
+      link.onclick = async () => {
+        const deviceId = getDeviceId();
+        try {
+          const hasAccess = await checkFolderAccess(name, deviceId);
+          if (!hasAccess) {
+            currentFolderName = name;
+            document.getElementById('requestModal').style.display = 'flex';
+            return;
+          }
+
+          if (childrenDiv.style.display === 'none') {
+            childrenDiv.style.display = 'block';
+            if (!loaded) {
+              childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
+              const items = await fetchFolderContents(folderId);
+              childrenDiv.innerHTML = '';
+
+              if (items.length === 0) {
+                childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';
+              } else {
+                const subUl = document.createElement('ul');
+                items.forEach(item => {
+                  if (item.mimeType === 'application/vnd.google-apps.folder') {
+                    subUl.appendChild(createFolderItem(item.name, item.id));
+                  } else {
+                    const fileLi = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.textContent = `📄 ${item.name}`;
+                    a.href = '#';
+                    a.className = 'file-link';
+                    a.onclick = () => {
+                      if (isImageFile(item.name)) {
+                        showImageInViewer(folderId, item.id);
+                      } else {
+                        document.getElementById('fileViewer').style.display = 'block';
+                        document.getElementById('fileFrame').src = getFileViewerURL(item);
+                        document.getElementById('navigationButtons').innerHTML = `
+                          <div class="close-button">
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                          </div>
+                        `;
+                      }
+                    };
+                    fileLi.appendChild(a);
+                    subUl.appendChild(fileLi);
+                  }
+                });
+                childrenDiv.appendChild(subUl);
+              }
+              loaded = true;
+            }
+          } else {
+            childrenDiv.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Lỗi khi mở thư mục:', error);
+          localStorage.setItem('errorFolderName', name);
+          window.location.href = 'email.html';
+        }
+      };
+
+      li.appendChild(link);
+      li.appendChild(childrenDiv);
+      return li;
+    }
+
+    function isImageFile(name) {
+      const lowerName = name.toLowerCase();
+      return lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');
+    }
+
+    async function showImageInViewer(folderId, selectedImageId) {
+      try {
+        currentFolderId = folderId;
+        currentImages = (await fetchFolderContents(folderId)).filter(item => isImageFile(item.name));
+        
+        if (currentImages.length === 0) {
+          document.getElementById('fileViewer').style.display = 'block';
+          document.getElementById('fileFrame').src = '';
+          document.getElementById('navigationButtons').innerHTML = `
+            <p class="error-message">Không có ảnh trong thư mục.</p>
+            <div class="close-button">
+              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+            </div>
+          `;
+          return;
+        }
+
+        currentImageIndex = currentImages.findIndex(item => item.id === selectedImageId);
+        if (currentImageIndex === -1) {
+          currentImageIndex = 0;
+        }
+
+        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
+        document.getElementById('navigationButtons').innerHTML = `
+          <span class="image-name">${currentImages[currentImageIndex].name}</span>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+          <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Lỗi khi tải ảnh:', error);
+        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileFrame').src = '';
+        document.getElementById('navigationButtons').innerHTML = `
+          <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
+          <div class="close-button">
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          </div>
+        `;
+      }
+    }
+
+    function navigateImage(direction) {
+      currentImageIndex += direction;
+      if (currentImageIndex < 0) {
+        currentImageIndex = currentImages.length - 1;
+      } else if (currentImageIndex >= currentImages.length) {
+        currentImageIndex = 0;
+      }
+
+      document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
+      document.getElementById('navigationButtons').innerHTML = `
+        <span class="image-name">${currentImages[currentImageIndex].name}</span>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
+        <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
+        <div class="close-button">
+          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+        </div>
+      `;
+    }
+
+    function getFileViewerURL(file) {
+      const fileId = file.id;
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+      return `https://drive.google.com/file/d/${fileId}/view`;
+    }
+
+    async function init() {
+      try {
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = 'Đang tải...';
+
+        const items = await fetchFolderContents(ROOT_FOLDER_ID);
+        folderList.innerHTML = '';
+
+        if (items.length === 0) {
+          folderList.innerHTML = '<li class="error-message">Thư mục rỗng hoặc không có quyền truy cập.</li>';
+        } else {
+          items.forEach(item => {
+            if (item.mimeType === 'application/vnd.google-apps.folder') {
+              folderList.appendChild(createFolderItem(item.name, item.id));
+            } else {
+              const fileLi = document.createElement('li');
+              const a = document.createElement('a');
+              a.textContent = `📄 ${item.name}`;
+              a.href = '#';
+              a.className = 'file-link';
+              a.onclick = () => {
+                if (isImageFile(item.name)) {
+                  showImageInViewer(ROOT_FOLDER_ID, item.id);
+                } else {
+                  document.getElementById('fileViewer').style.display = 'block';
+                  document.getElementById('fileFrame').src = getFileViewerURL(item);
+                  document.getElementById('navigationButtons').innerHTML = `
+                    <div class="close-button">
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                    </div>
+                  `;
+                }
+              };
+              fileLi.appendChild(a);
+              folderList.appendChild(fileLi);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khởi tạo:', error);
+        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>
