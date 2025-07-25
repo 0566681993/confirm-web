@@ -1,1 +1,0 @@
-// PDF.worker.js stub file placeholder
