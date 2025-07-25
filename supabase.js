@@ -1,5 +1,0 @@
-
-const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
