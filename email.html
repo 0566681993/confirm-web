@@ -108,7 +108,16 @@
       }
       return id;
     }
-
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
+          (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
     async function sendEmail() {
       const email = document.getElementById("email").value.trim();
       const deviceId = getDeviceId();
