@@ -261,7 +261,8 @@
     document.addEventListener('dragstart', e => e.preventDefault());
 
     function normalizeFolderName(name) {
-      return name.toLowerCase().trim().replace(/\s+/g, ' ');
+      const match = name.match(/^(\d+)\./);
+      return match ? parseInt(match[1]) : null;
     }
 
     function getDeviceId() {
