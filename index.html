@@ -410,7 +410,7 @@
       const fileId = file.id;
       const name = file.name.toLowerCase();
       if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
-        return `https://drive.google.com/file/d/${fileId}/preview`;
+        return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(fileUrl)}`;
       }
       return `https://drive.google.com/file/d/${fileId}/view`;
     }
