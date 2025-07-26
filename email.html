@@ -174,9 +174,7 @@
           .insert({
             device_id: deviceId,
             folder_id: folderId,
-            user_name: email,
-            approval: false,
-            created_at: new Date().toISOString()
+            approval: false
           });
 
         if (insertError) {
