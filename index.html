@@ -281,7 +281,7 @@
         const { data, error } = await supabase
           .from('approved_access')
           .select('approval')
-          .eq('folder_name', normalizedFolderName)
+          .eq('folder_id', normalizedFolderName)
           .eq('device_id', deviceId)
           .single();
         if (error && error.code !== 'PGRST116') {
@@ -292,57 +292,6 @@
       } catch (error) {
         console.error('Lỗi kiểm tra quyền:', error);
         throw error;
-      }
-    }
-
-    async function submitRequest() {
-      const userName = document.getElementById('userNameInput').value.trim();
-      if (!userName) {
-        alert('Vui lòng nhập tên!');
-        return;
-      }
-
-      try {
-        const deviceId = getDeviceId();
-        const normalizedFolderName = normalizeFolderName(currentFolderName);
-
-        // Kiểm tra xem yêu cầu đã tồn tại chưa
-        const { data: existingRequest, error: checkError } = await supabase
-          .from('approved_access')
-          .select('approval')
-          .eq('folder_name', normalizedFolderName)
-          .eq('device_id', deviceId)
-          .single();
-
-        if (checkError && checkError.code !== 'PGRST116') {
-          throw new Error(`Lỗi kiểm tra yêu cầu: ${checkError.message}`);
-        }
-
-        if (existingRequest) {
-          alert(existingRequest.approval 
-            ? 'Bạn đã có quyền truy cập thư mục này!'
-            : 'Yêu cầu truy cập đã được gửi trước đó. Vui lòng chờ phê duyệt.');
-          document.getElementById('requestModal').style.display = 'none';
-          document.getElementById('userNameInput').value = '';
-          return;
-        }
-
-        const { error } = await supabase
-          .from('approved_access')
-          .insert({
-            folder_name: normalizedFolderName,
-            device_id: deviceId,
-            approval: false
-          });
-
-        if (error) throw new Error(`Lỗi gửi yêu cầu: ${error.message}`);
-
-        alert('Yêu cầu đã được gửi. Vui lòng chờ duyệt.');
-        document.getElementById('requestModal').style.display = 'none';
-        document.getElementById('userNameInput').value = '';
-      } catch (error) {
-        console.error('Lỗi gửi yêu cầu:', error);
-        alert(`Lỗi: ${error.message}`);
       }
     }
 
