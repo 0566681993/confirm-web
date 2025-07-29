@@ -292,6 +292,18 @@
       }
     }
 
+    async function getHtmlContent(fileId) {
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Không thể tải nội dung file.');
+        return await res.text();
+      } catch (error) {
+        console.error('Lỗi khi tải nội dung HTML:', error);
+        return `<p class="error-message">Lỗi tải nội dung: ${error.message}</p>`;
+      }
+    }
+
     function createFolderItem(name, folderId) {
       const li = document.createElement('li');
       const link = document.createElement('a');
@@ -334,8 +346,20 @@
                     a.textContent = `📄 ${item.name}`;
                     a.href = '#';
                     a.className = 'file-link';
-                    a.onclick = () => {
-                      if (isImageFile(item.name)) {
+                    a.onclick = async () => {
+                      if (item.name.toLowerCase().endsWith('.html')) {
+                        document.getElementById('fileViewer').style.display = 'block';
+                        const content = await getHtmlContent(item.id);
+                        const iframeDoc = document.getElementById('fileFrame').contentDocument || document.getElementById('fileFrame').contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write(content);
+                        iframeDoc.close();
+                        document.getElementById('navigationButtons').innerHTML = `
+                          <div class="close-button">
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                          </div>
+                        `;
+                      } else if (isImageFile(item.name)) {
                         showImageInViewer(folderId, item.id);
                       } else {
                         document.getElementById('fileViewer').style.display = 'block';
