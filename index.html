@@ -356,7 +356,7 @@
                         iframeDoc.close();
                         document.getElementById('navigationButtons').innerHTML = `
                           <div class="close-button">
-                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>
                           </div>
                         `;
                       } else if (isImageFile(item.name)) {
@@ -366,7 +366,7 @@
                         document.getElementById('fileFrame').src = getFileViewerURL(item);
                         document.getElementById('navigationButtons').innerHTML = `
                           <div class="close-button">
-                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>
                           </div>
                         `;
                       }
@@ -458,7 +458,7 @@
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
         <div class="close-button">
-          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+          <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>
         </div>
       `;
     }
@@ -500,7 +500,7 @@
                   document.getElementById('fileFrame').src = getFileViewerURL(item);
                   document.getElementById('navigationButtons').innerHTML = `
                     <div class="close-button">
-                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
+                      <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>
                     </div>
                   `;
                 }
