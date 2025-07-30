@@ -361,7 +361,7 @@
                         iframeDoc.close();
                         document.getElementById('navigationButtons').innerHTML = `
                           <div class="close-button">
-                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                           </div>
                         `;
                       } else if (isImageFile(item.name)) {
@@ -371,7 +371,7 @@
                         document.getElementById('fileFrame').src = getFileViewerURL(item);
                         document.getElementById('navigationButtons').innerHTML = `
                           <div class="close-button">
-                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+                            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                           </div>
                         `;
                       }
@@ -415,7 +415,7 @@
           document.getElementById('navigationButtons').innerHTML = `
             <p class="error-message">Không có ảnh trong thư mục.</p>
             <div class="close-button">
-              <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+              <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
             </div>
           `;
           return;
@@ -433,7 +433,7 @@
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
           </div>
         `;
       } catch (error) {
@@ -443,7 +443,7 @@
         document.getElementById('navigationButtons').innerHTML = `
           <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>
           <div class="close-button">
-            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+            <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
           </div>
         `;
       }
@@ -463,7 +463,7 @@
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(1)">>></button>
         <div class="close-button">
-          <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+          <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
         </div>
       `;
     }
@@ -505,7 +505,7 @@
                   document.getElementById('fileFrame').src = getFileViewerURL(item);
                   document.getElementById('navigationButtons').innerHTML = `
                     <div class="close-button">
-                      <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''">X</button>
+                      <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>
                     </div>
                   `;
                 }
