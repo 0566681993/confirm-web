@@ -1,7 +1,8 @@
+Thêm đoạn 2 vào đây cho tôi
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" content="text/html; charset=UTF-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📙 TRUYỆN DỊCH 📙</title>
   <style>
@@ -297,12 +298,7 @@
         const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Không thể tải nội dung file.');
-        let content = await res.text();
-
-        // Xây dựng nội dung bảo vệ trong một chuỗi duy nhất
-        const protectedContent = '<html><head><style>body { margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }</style></head><body oncontextmenu="return false;" oncopy="return false;" onselectstart="return false;" ondragstart="return false;">' + content + '<script>document.addEventListener(\'keydown\', (e) => { if ((e.ctrlKey && e.key === \'C\') || e.key === \'PrintScreen\') { e.preventDefault(); alert(\'Sao chép hoặc chụp màn hình bị cấm!\'); } });document.addEventListener(\'copy\', (e) => { e.preventDefault(); alert(\'Sao chép bị cấm!\'); });</script></body></html>';
-
-        return protectedContent;
+        return await res.text();
       } catch (error) {
         console.error('Lỗi khi tải nội dung HTML:', error);
         return `<p class="error-message">Lỗi tải nội dung: ${error.message}</p>`;
