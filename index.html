@@ -343,7 +343,9 @@
                   } else {
                     const fileLi = document.createElement('li');
                     const a = document.createElement('a');
-                    a.textContent = `📄 ${item.name}`;
+                    const fileNameWithoutExtension = item.name.replace(/\.[^/.]+$/, ""); // Loại bỏ đuôi file
+                    a.textContent = `📗 ${fileNameWithoutExtension}`;
+                    //a.textContent = `📗 ${item.name}`;
                     a.href = '#';
                     a.className = 'file-link';
                     a.onclick = async () => {
