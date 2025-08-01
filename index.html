@@ -236,10 +236,11 @@
     document.addEventListener('copy', e => e.preventDefault());
     document.addEventListener('dragstart', e => e.preventDefault());
 
-    function normalizeFolderName(name) {
-      const match = name.match(/^(\d+)\./);
-      return match ? parseInt(match[1]) : null;
-    }
+function normalizeFolderName(name) {
+  // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"
+  const match = name.match(/^(\d+)/); // Lấy số ở đầu chuỗi
+  return match ? parseInt(match[1]) : Infinity; // Trả về số hoặc Infinity nếu không có số
+}
 
     function getDeviceId() {
       let deviceId = localStorage.getItem('deviceId');
