@@ -271,26 +271,31 @@
       }
     }
 
-    async function fetchFolderContents(folderId) {
-      try {
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
-        }
-        const data = await res.json();
-        if (!data.files) {
-          throw new Error('Không nhận được danh sách file/thư mục.');
-        }
-        return data.files.sort((a, b) => a.name.localeCompare(b.name));
-      } catch (error) {
-        console.error('Lỗi khi tải dữ liệu:', error);
-        const folderList = document.getElementById('folderList');
-        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
-        return [];
-      }
+async function fetchFolderContents(folderId) {
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
     }
+    const data = await res.json();
+    if (!data.files) {
+      throw new Error('Không nhận được danh sách file/thư mục.');
+    }
+    // Sắp xếp theo folder_id (số) thay vì tên chuỗi
+    return data.files.sort((a, b) => {
+      const idA = normalizeFolderName(a.name) || Infinity; // Sử dụng Infinity nếu không trích xuất được số
+      const idB = normalizeFolderName(b.name) || Infinity;
+      return idA - idB; // Sắp xếp tăng dần theo số
+    });
+  } catch (error) {
+    console.error('Lỗi khi tải dữ liệu:', error);
+    const folderList = document.getElementById('folderList');
+    folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
+    return [];
+  }
+}
 
     async function getHtmlContent(fileId) {
       try {
