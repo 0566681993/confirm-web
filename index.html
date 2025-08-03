@@ -284,7 +284,7 @@ async function fetchFolderContents(folderId) {
     if (!data.files) {
       throw new Error('Không nhận được danh sách file/thư mục.');
     }
-    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc
+    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc (nếu có)
     return data.files.sort((a, b) => {
       const getPrefixNumber = (name) => {
         const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -
@@ -292,14 +292,20 @@ async function fetchFolderContents(folderId) {
       };
       const getBracketNumber = (name) => {
         const match = name.match(/\(\d+\)$/); // Trích xuất số trong ngoặc cuối cùng
-        return match ? parseInt(match[0].replace(/[()]/g, "")) : 0; // Trả về số, mặc định 0 nếu không có
+        return match ? parseInt(match[0].replace(/[()]/g, "")) : -1; // Trả về -1 nếu không có ngoặc
       };
       const prefixA = getPrefixNumber(a.name);
       const prefixB = getPrefixNumber(b.name);
       if (prefixA !== prefixB) {
         return prefixA - prefixB; // Sắp xếp theo số trước -
       }
-      return getBracketNumber(a.name) - getBracketNumber(b.name); // Nếu bằng, sắp xếp theo số trong ngoặc
+      // Nếu số trước - bằng nhau, so sánh số trong ngoặc
+      const bracketA = getBracketNumber(a.name);
+      const bracketB = getBracketNumber(b.name);
+      if (bracketA === -1 && bracketB === -1) return 0; // Cả hai không có ngoặc, giữ nguyên thứ tự
+      if (bracketA === -1) return 1; // a không có ngoặc, xếp sau b
+      if (bracketB === -1) return -1; // b không có ngoặc, xếp sau a
+      return bracketA - bracketB; // So sánh số trong ngoặc
     });
   } catch (error) {
     console.error('Lỗi khi tải dữ liệu:', error);
@@ -307,8 +313,7 @@ async function fetchFolderContents(folderId) {
     folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
     return [];
   }
-                                }
-
+}
     async function getHtmlContent(fileId) {
       try {
         const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;
