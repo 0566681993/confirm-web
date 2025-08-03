@@ -284,15 +284,17 @@ async function fetchFolderContents(folderId) {
     if (!data.files) {
       throw new Error('Không nhận được danh sách file/thư mục.');
     }
-    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc (nếu có)
+    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc, với debug
     return data.files.sort((a, b) => {
       const getPrefixNumber = (name) => {
         const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -
+        console.log(`Debug - Name: ${name}, Prefix Match: ${match ? match[1] : 'None'}`);
         return match ? parseInt(match[1]) : 0; // Trả về số, mặc định 0 nếu không có
       };
       const getBracketNumber = (name) => {
-        const match = name.match(/\(\d+\)$/); // Trích xuất số trong ngoặc cuối cùng
-        return match ? parseInt(match[0].replace(/[()]/g, "")) : -1; // Trả về -1 nếu không có ngoặc
+        const match = name.match(/\s*\((\d+)\)\s*$/); // Trích xuất số trong ngoặc, cho phép khoảng trắng
+        console.log(`Debug - Name: ${name}, Bracket Match: ${match ? match[1] : 'None'}`);
+        return match ? parseInt(match[1]) : -1; // Trả về số trong ngoặc, -1 nếu không có
       };
       const prefixA = getPrefixNumber(a.name);
       const prefixB = getPrefixNumber(b.name);
