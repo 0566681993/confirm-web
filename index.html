@@ -284,29 +284,27 @@ async function fetchFolderContents(folderId) {
     if (!data.files) {
       throw new Error('Không nhận được danh sách file/thư mục.');
     }
-    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc, với debug
+    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc
     return data.files.sort((a, b) => {
       const getPrefixNumber = (name) => {
         const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -
-        console.log(`Debug - Name: ${name}, Prefix Match: ${match ? match[1] : 'None'}`);
         return match ? parseInt(match[1]) : 0; // Trả về số, mặc định 0 nếu không có
       };
       const getBracketNumber = (name) => {
-        const match = name.match(/\s*\((\d+)\)\s*$/); // Trích xuất số trong ngoặc, cho phép khoảng trắng
-        console.log(`Debug - Name: ${name}, Bracket Match: ${match ? match[1] : 'None'}`);
-        return match ? parseInt(match[1]) : -1; // Trả về số trong ngoặc, -1 nếu không có
+        const match = name.match(/\(\d+\)$/); // Trích xuất số trong ngoặc cuối cùng
+        return match ? parseInt(match[0].replace(/[()]/g, "")) : null; // Trả về null nếu không có ngoặc
       };
       const prefixA = getPrefixNumber(a.name);
       const prefixB = getPrefixNumber(b.name);
       if (prefixA !== prefixB) {
         return prefixA - prefixB; // Sắp xếp theo số trước -
       }
-      // Nếu số trước - bằng nhau, so sánh số trong ngoặc
+      // Nếu số trước - bằng nhau, xử lý ngoặc
       const bracketA = getBracketNumber(a.name);
       const bracketB = getBracketNumber(b.name);
-      if (bracketA === -1 && bracketB === -1) return 0; // Cả hai không có ngoặc, giữ nguyên thứ tự
-      if (bracketA === -1) return 1; // a không có ngoặc, xếp sau b
-      if (bracketB === -1) return -1; // b không có ngoặc, xếp sau a
+      if (bracketA === null && bracketB === null) return 0; // Cả hai không có ngoặc, giữ nguyên
+      if (bracketA === null) return 1; // a không có ngoặc, xếp sau b
+      if (bracketB === null) return -1; // b không có ngoặc, xếp sau a
       return bracketA - bracketB; // So sánh số trong ngoặc
     });
   } catch (error) {
