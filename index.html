@@ -284,11 +284,22 @@ async function fetchFolderContents(folderId) {
     if (!data.files) {
       throw new Error('Không nhận được danh sách file/thư mục.');
     }
-    // Sắp xếp theo folder_id (số) thay vì tên chuỗi
+    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc
     return data.files.sort((a, b) => {
-      const idA = normalizeFolderName(a.name) || Infinity; // Sử dụng Infinity nếu không trích xuất được số
-      const idB = normalizeFolderName(b.name) || Infinity;
-      return idA - idB; // Sắp xếp tăng dần theo số
+      const getPrefixNumber = (name) => {
+        const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -
+        return match ? parseInt(match[1]) : 0; // Trả về số, mặc định 0 nếu không có
+      };
+      const getBracketNumber = (name) => {
+        const match = name.match(/\(\d+\)$/); // Trích xuất số trong ngoặc cuối cùng
+        return match ? parseInt(match[0].replace(/[()]/g, "")) : 0; // Trả về số, mặc định 0 nếu không có
+      };
+      const prefixA = getPrefixNumber(a.name);
+      const prefixB = getPrefixNumber(b.name);
+      if (prefixA !== prefixB) {
+        return prefixA - prefixB; // Sắp xếp theo số trước -
+      }
+      return getBracketNumber(a.name) - getBracketNumber(b.name); // Nếu bằng, sắp xếp theo số trong ngoặc
     });
   } catch (error) {
     console.error('Lỗi khi tải dữ liệu:', error);
@@ -296,7 +307,7 @@ async function fetchFolderContents(folderId) {
     folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
     return [];
   }
-}
+                                }
 
     async function getHtmlContent(fileId) {
       try {
