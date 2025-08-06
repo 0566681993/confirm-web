@@ -78,12 +78,12 @@
     }
 
     async function sendEmail() {
-      const email = document.getElementById("email").value.trim();
+      const emailInput = document.getElementById("email").value.trim();
       const deviceId = getDeviceId();
       const folderId = extractFolderId(folderName);
       const statusEl = document.getElementById("status");
 
-      if (!email) {
+      if (!emailInput) {
         statusEl.textContent = "Vui lòng nhập email.";
         statusEl.className = "error";
         return;
@@ -119,34 +119,32 @@
             device_id: deviceId,
             folder_id: folderId,
             folder_name: folderName,
-            name_email: email,
+            name_email: emailInput,
             approval: false
           });
 
         if (insertError) {
           throw new Error(`Lỗi ghi dữ liệu: ${insertError.message}`);
         }
-
-        // Gửi email qua Google Apps Script
-        await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: new URLSearchParams({
-            email: email,
-            device_id: deviceId,
-            folder_name: folderName
-          })
-        });
-
-        statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
         statusEl.className = "success";
       } catch (error) {
         console.error("Lỗi:", error);
         statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại." + (error.message || error);
         statusEl.className = "error";
       }
+        await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
+		method: "POST",
+		headers: {
+		  'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body: new URLSearchParams({
+		  email: emailInput || 'test@example.com',
+		  device_id: deviceId,
+		  folder_name: folderName
+		})
+	  });
+      document.getElementById("status").textContent = "✅ Đã gửi yêu cầu. Vui lòng đợi admin duyệt.";
+	    document.getElementById("status").className = "success";
     }
 
     function goBack() {
@@ -156,7 +154,7 @@
     // Ngăn sao chép & mở console
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
-      if (e.key === 'F12' || 
+      if (e.key === 'F11' || 
           (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) || 
           (e.ctrlKey && e.key === 'U')) {
         e.preventDefault();
