@@ -52,7 +52,6 @@
   </div>
   <p id="status"></p>
   <h3>Khi được duyệt vui lòng chỉ sử dụng trình duyệt dùng để gửi yêu cầu để đọc truyện nhé !</h3>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
@@ -77,47 +76,41 @@
       return match ? parseInt(match[1]) : null;
     }
 
-    async function sendEmail() {
-      const emailInput = document.getElementById("email").value.trim();
-      const deviceId = getDeviceId();
-      const folderId = extractFolderId(folderName);
-      const statusEl = document.getElementById("status");
-
+	async function sendEmail() {
+	  const emailInput = document.getElementById("email").value.trim();
+	  const deviceId = getDeviceId();
+	  const name = folderName;
+	  const statusEl = document.getElementById("status");
       if (!emailInput) {
         statusEl.textContent = "Vui lòng nhập email.";
         statusEl.className = "error";
         return;
       }
-
-      if (!folderId) {
-        statusEl.textContent = "Không thể trích xuất folder_id từ tên thư mục.";
-        statusEl.className = "error";
-        return;
-      }
-
-      try {
+	  try {
+        // Kiểm tra xem bản ghi đã tồn tại chưa
         const { data: existingRecord, error: checkError } = await supabase
           .from('approved_access')
           .select('id')
           .eq('device_id', deviceId)
-          .eq('folder_id', folderId)
-          .single();
+          .eq('folder_id', 0)
+          .single({ headers: { 'Accept': 'application/json' } });
 
         if (checkError && checkError.code !== 'PGRST116') {
           throw new Error(`Lỗi kiểm tra bản ghi: ${checkError.message}`);
         }
 
         if (existingRecord) {
-          statusEl.textContent = "Đã gửi yêu cầu, đang chờ duyệt.";
+          statusEl.textContent = "Yêu cầu đã tồn tại, đang chờ duyệt.";
           statusEl.className = "success";
-          return;
+          return; // Không ghi mới nếu đã tồn tại
         }
 
+        // Ghi mới bản ghi nếu chưa tồn tại
         const { error: insertError } = await supabase
           .from('approved_access')
           .insert({
             device_id: deviceId,
-            folder_id: folderId,
+            folder_id: 0,
             folder_name: folderName,
             name_email: emailInput,
             approval: false
@@ -127,12 +120,13 @@
           throw new Error(`Lỗi ghi dữ liệu: ${insertError.message}`);
         }
         statusEl.className = "success";
+        //document.getElementById("email").value = "";
       } catch (error) {
         console.error("Lỗi:", error);
-        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại." + (error.message || error);
+        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.";
         statusEl.className = "error";
       }
-        await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
+	  await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
 		method: "POST",
 		headers: {
 		  'Content-Type': 'application/x-www-form-urlencoded'
@@ -140,12 +134,13 @@
 		body: new URLSearchParams({
 		  email: emailInput || 'test@example.com',
 		  device_id: deviceId,
-		  folder_name: folderName
+		  folder_name: name
 		})
 	  });
-      document.getElementById("status").textContent = "✅ Đã gửi yêu cầu. Vui lòng đợi admin duyệt.";
-	    document.getElementById("status").className = "success";
-    }
+
+	  document.getElementById("status").textContent = "✅ Đã gửi yêu cầu. Vui lòng đợi admin duyệt.";
+	  document.getElementById("status").className = "success";
+	}
 
     function goBack() {
       window.location.href = 'index.html';
