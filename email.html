@@ -184,12 +184,15 @@
           throw new Error(`Lỗi ghi dữ liệu: ${insertError.message}`);
         }
 
-        // Gửi email qua EmailJS
-        await emailjs.send("0566681993", "0376425426", {
-          email: email,
-          device_id: deviceId,
-          folder_name: folderName
-        });
+        await fetch("https://script.google.com/macros/s/AKfycbw0VNATw_FdEwP9qPxOHBa8C-x4_OXXeQrNgpNzti2P03kDLZVBa3z0rAPjyLNU48qB7Q/exec", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email: email,
+    device_id: deviceId,
+    folder_name: folderName
+  })
+});
 
         statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
         statusEl.className = "success";
