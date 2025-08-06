@@ -45,6 +45,7 @@
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
   <p id="folderInfo">📁 Truyện : <span class="folder-name">...</span></p>
+	<p id="deviceInfo">📱 Mã thiết bị: <span id="deviceIdDisplay">...</span></p>
   <input type="email" id="email" placeholder="Nhập Tên hoặc Email..." />
   <div class="button-container">
     <button onclick="sendEmail()">Gửi yêu cầu</button>
@@ -56,7 +57,8 @@
   <script>
     const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
     document.getElementById("folderInfo").innerHTML = `📁 Truyện: <span class="folder-name">${folderName}</span>`;
-
+		const deviceId = getDeviceId();
+  	document.getElementById("deviceIdDisplay").textContent = deviceId;
     // Supabase config
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
