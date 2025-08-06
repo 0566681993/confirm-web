@@ -144,7 +144,7 @@
         statusEl.className = "success";
       } catch (error) {
         console.error("Lỗi:", error);
-        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.{error}";
+        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại." + (error.message || error);
         statusEl.className = "error";
       }
     }
