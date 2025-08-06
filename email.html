@@ -185,15 +185,15 @@
         }
 
         // Gửi email qua EmailJS
-        await emailjs.send("0566681993", "0376425426", {
-          email: email,
-          device_id: deviceId,
-          folder_name: folderName
-        });
+        //await emailjs.send("0566681993", "0376425426", {
+        //  email: email,
+        //  device_id: deviceId,
+       //   folder_name: folderName
+       // });
 
         statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
         statusEl.className = "success";
-        document.getElementById("email").value = "";
+        //document.getElementById("email").value = "";
       } catch (error) {
         console.error("Lỗi:", error);
         statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.";
