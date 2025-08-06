@@ -80,7 +80,9 @@
 	  const emailInput = document.getElementById("email").value.trim();
 	  const deviceId = getDeviceId();
 	  const name = folderName;
+	  const folderId = extractFolderId(folderName);
 	  const statusEl = document.getElementById("status");
+		
       if (!emailInput) {
         statusEl.textContent = "Vui lòng nhập email.";
         statusEl.className = "error";
@@ -92,7 +94,7 @@
           .from('approved_access')
           .select('id')
           .eq('device_id', deviceId)
-          .eq('folder_id', 0)
+          .eq('folder_id', folderId)
           .single({ headers: { 'Accept': 'application/json' } });
 
         if (checkError && checkError.code !== 'PGRST116') {
@@ -110,7 +112,7 @@
           .from('approved_access')
           .insert({
             device_id: deviceId,
-            folder_id: 0,
+            folder_id: folderId,
             folder_name: folderName,
             name_email: emailInput,
             approval: false
