@@ -12,74 +12,33 @@
       text-align: center;
       margin: 0;
     }
-    h3 {
-      font-size: clamp(18px, 5vw, 22px);
-      color: #333;
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: clamp(14px, 4vw, 16px);
-      color: #666;
-      margin: 10px 0;
-    }
-    .folder-name {
-      font-weight: bold;
-      color: #0066cc;
-    }
+    h3 { font-size: clamp(18px, 5vw, 22px); color: #333; margin-bottom: 10px; }
+    p { font-size: clamp(14px, 4vw, 16px); color: #666; margin: 10px 0; }
+    .folder-name { font-weight: bold; color: #0066cc; }
     input[type="email"] {
-      width: 100%;
-      max-width: 300px;
-      padding: 8px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      font-size: clamp(12px, 3.5vw, 14px);
+      width: 100%; max-width: 300px; padding: 8px; margin: 10px 0;
+      border: 1px solid #ccc; border-radius: 3px; font-size: clamp(12px, 3.5vw, 14px);
     }
     .button-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 10px 0;
+      display: flex; justify-content: center; gap: 10px; margin: 10px 0;
     }
     button {
-      background: #ff4d4d;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 3px;
-      cursor: pointer;
+      background: #ff4d4d; color: white; border: none;
+      padding: 8px 15px; border-radius: 3px; cursor: pointer;
       font-size: clamp(12px, 3.5vw, 14px);
     }
-    button:hover {
-      background: #e60000;
-    }
-    #status {
-      color: #333;
-      font-size: clamp(12px, 3.5vw, 14px);
-    }
-    #status.success {
-      color: green;
-    }
-    #status.error {
-      color: red;
-    }
+    button:hover { background: #e60000; }
+    #status { color: #333; font-size: clamp(12px, 3.5vw, 14px); }
+    #status.success { color: green; }
+    #status.error { color: red; }
     @media screen and (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      h3 {
-        font-size: clamp(16px, 4.5vw, 18px);
-      }
-      p {
-        font-size: clamp(12px, 3.2vw, 14px);
-      }
+      body { padding: 10px; }
+      h3 { font-size: clamp(16px, 4.5vw, 18px); }
+      p { font-size: clamp(12px, 3.2vw, 14px); }
       input[type="email"], button {
-        font-size: clamp(10px, 3vw, 12px);
-        padding: 6px 10px;
+        font-size: clamp(10px, 3vw, 12px); padding: 6px 10px;
       }
-      .button-container {
-        gap: 5px;
-      }
+      .button-container { gap: 5px; }
     }
   </style>
 </head>
@@ -95,16 +54,13 @@
   <h3>Khi được duyệt vui lòng chỉ sử dụng trình duyệt dùng để gửi yêu cầu để đọc truyện nhé !</h3>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("bNyTDo7SAT7JYMWH1");
-
     const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
     document.getElementById("folderInfo").innerHTML = `📁 Truyện: <span class="folder-name">${folderName}</span>`;
 
-    // Khởi tạo Supabase
+    // Supabase config
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function getDeviceId() {
@@ -120,17 +76,6 @@
       const match = folderName.match(/^(\d+)\./);
       return match ? parseInt(match[1]) : null;
     }
-
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (e.key === 'F12' || 
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
-          (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-      }
-    });
-    document.addEventListener('copy', e => e.preventDefault());
-    document.addEventListener('dragstart', e => e.preventDefault());
 
     async function sendEmail() {
       const email = document.getElementById("email").value.trim();
@@ -151,7 +96,6 @@
       }
 
       try {
-        // Kiểm tra xem bản ghi đã tồn tại chưa
         const { data: existingRecord, error: checkError } = await supabase
           .from('approved_access')
           .select('id')
@@ -166,10 +110,9 @@
         if (existingRecord) {
           statusEl.textContent = "Đã gửi yêu cầu, đang chờ duyệt.";
           statusEl.className = "success";
-          return; // Không ghi mới nếu đã tồn tại
+          return;
         }
 
-        // Ghi mới bản ghi nếu chưa tồn tại
         const { error: insertError } = await supabase
           .from('approved_access')
           .insert({
@@ -184,16 +127,15 @@
           throw new Error(`Lỗi ghi dữ liệu: ${insertError.message}`);
         }
 
-        // Gửi email qua EmailJS
-        //await emailjs.send("0566681993", "0376425426", {
-        //  email: email,
-        //  device_id: deviceId,
-       //   folder_name: folderName
-       // });
+        // Gửi email qua Google Apps Script
+        await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `email=${encodeURIComponent(email)}&device_id=${encodeURIComponent(deviceId)}&folder_name=${encodeURIComponent(folderName)}`
+        });
 
         statusEl.textContent = "✅ Đã gửi yêu cầu thành công!";
         statusEl.className = "success";
-        //document.getElementById("email").value = "";
       } catch (error) {
         console.error("Lỗi:", error);
         statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.";
@@ -204,6 +146,18 @@
     function goBack() {
       window.location.href = 'index.html';
     }
+
+    // Ngăn sao chép & mở console
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) || 
+          (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
   </script>
 </body>
 </html>
