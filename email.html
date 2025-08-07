@@ -45,7 +45,8 @@
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
   <p id="folderInfo">📁 Truyện : <span class="folder-name">...</span></p>
-	<p id="deviceInfo">📱 Mã thiết bị: <span id="deviceIdDisplay">...</span></p>
+  <p id="deviceInfo">📱 Mã thiết bị: <span id="deviceIdDisplay">...</span></p>
+  <p id="browserinfo">🌏Trình duyệt: <span id="browser-Name">...</span></p>
   <input type="email" id="email" placeholder="Nhập Tên hoặc Email..." />
   <div class="button-container">
     <button onclick="sendEmail()">Gửi yêu cầu</button>
@@ -57,13 +58,52 @@
   <script>
     const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
     document.getElementById("folderInfo").innerHTML = `📁 Truyện: <span class="folder-name">${folderName}</span>`;
-		const deviceId = getDeviceId();
+	const deviceId = getDeviceId();
   	document.getElementById("deviceIdDisplay").textContent = deviceId;
+	const browser = getBrowserInfo();
+	document.getElementById("browser-Name").textContent = browser.name;
     // Supabase config
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+	function getBrowserInfo() {
+  const userAgent = navigator.userAgent;
+  let browserName = "Unknown";
+  let browserVersion = "Unknown";
 
+  // Kiểm tra các trình duyệt phổ biến
+  if (userAgent.includes("Firefox")) {
+    browserName = "Mozilla Firefox";
+    const versionMatch = userAgent.match(/Firefox\/(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
+  } else if (userAgent.includes("Edg")) {
+    browserName = "Microsoft Edge";
+    const versionMatch = userAgent.match(/Edg\/(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
+  } else if (userAgent.includes("Chrome")) {
+    browserName = "Google Chrome";
+    const versionMatch = userAgent.match(/Chrome\/(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
+  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+    browserName = "Apple Safari";
+    const versionMatch = userAgent.match(/Version\/(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
+  } else if (userAgent.includes("OPR") || userAgent.includes("Opera")) {
+    browserName = "Opera";
+    const versionMatch = userAgent.match(/(OPR|Opera)\/(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[2] : "Unknown";
+  } else if (userAgent.includes("Trident") || userAgent.includes("MSIE")) {
+    browserName = "Internet Explorer";
+    const versionMatch = userAgent.match(/(MSIE|rv:)(\d+\.\d+)/);
+    browserVersion = versionMatch ? versionMatch[2] : "Unknown";
+  }
+
+  return {
+    name: browserName,
+    version: browserVersion,
+    userAgent: userAgent // Trả về userAgent gốc để debug nếu cần
+  };
+}
     function getDeviceId() {
       let id = localStorage.getItem("deviceId");
       if (!id) {
@@ -117,6 +157,7 @@
             folder_id: folderId,
             folder_name: folderName,
             name_email: emailInput,
+			brower_name: browser.name,
             approval: false
           });
 
@@ -136,9 +177,10 @@
 		  'Content-Type': 'application/x-www-form-urlencoded'
 		},
 		body: new URLSearchParams({
-		  email: emailInput || 'test@example.com',
+		  email: emailInput,
 		  device_id: deviceId,
-		  folder_name: name
+		  folder_name: name,
+		  browser: browser.name
 		})
 	  });
 
