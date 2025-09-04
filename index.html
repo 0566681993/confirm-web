@@ -332,7 +332,8 @@ async function fetchFolderContents(folderId) {
       const link = document.createElement('a');
       link.className = 'folder';
       link.textContent = `📚 ${name}`;
-      link.href = '#';
+      link.removeAttribute('href'); 
+      link.style.cursor = 'pointer';
 
       const childrenDiv = document.createElement('div');
       childrenDiv.className = 'children';
