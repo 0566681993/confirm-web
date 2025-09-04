@@ -339,8 +339,7 @@ async function fetchFolderContents(folderId) {
 
       let loaded = false;
 
-      link.onclick = async (e) => {
-        e.preventDefault();
+      link.onclick = async () => {
         const deviceId = getDeviceId();
         try {
           const hasAccess = await checkFolderAccess(name, deviceId);
@@ -370,7 +369,7 @@ async function fetchFolderContents(folderId) {
                     const fileNameWithoutExtension = item.name.replace(/\.[^/.]+$/, ""); // Loại bỏ đuôi file
                     a.textContent = `📗 ${fileNameWithoutExtension}`;
                     //a.textContent = `📗 ${item.name}`;
-                    a.href = '#';
+                    a.href = 'javascript:void(0)';
                     a.className = 'file-link';
                     a.onclick = async () => {
                       if (item.name.toLowerCase().endsWith('.html')) {
