@@ -369,7 +369,7 @@ async function fetchFolderContents(folderId) {
                     const fileNameWithoutExtension = item.name.replace(/\.[^/.]+$/, ""); // Loại bỏ đuôi file
                     a.textContent = `📗 ${fileNameWithoutExtension}`;
                     //a.textContent = `📗 ${item.name}`;
-                    //a.href = '#';
+                    a.href = 'javascript:void(0)';
                     a.className = 'file-link';
                     a.onclick = async () => {
                       if (item.name.toLowerCase().endsWith('.html')) {
