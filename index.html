@@ -54,7 +54,7 @@
 
     a.folder {
       font-size: clamp(16px, 4vw, 18px);
-      color: #0066cc;
+      color: 0066cc;
       font-weight: bold;
       cursor: pointer;
       display: block;
@@ -62,7 +62,7 @@
     }
 
     a.folder:hover {
-      color: #ff6600;
+      color: ff6600;
     }
 
     .children {
@@ -81,14 +81,14 @@
       text-decoration: underline;
     }
 
-    #fileViewer {
+    fileViewer {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: #fff;
+      background: fff;
       z-index: 1000;
     }
 
@@ -339,7 +339,8 @@ async function fetchFolderContents(folderId) {
 
       let loaded = false;
 
-      link.onclick = async () => {
+      link.onclick = async (e) => {
+        e.preventDefault();
         const deviceId = getDeviceId();
         try {
           const hasAccess = await checkFolderAccess(name, deviceId);
