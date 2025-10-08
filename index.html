@@ -298,7 +298,7 @@ async function fetchFolderContents(folderId) {
       const prefixA = getPrefixNumber(a.name);
       const prefixB = getPrefixNumber(b.name);
       if (prefixA !== prefixB) {
-        return prefixA - prefixB; // Sắp xếp theo số trước -
+        return prefixB - prefixA; // Sắp xếp theo số trước -
       }
       // Nếu số trước - bằng nhau, xử lý ngoặc
       const bracketA = getBracketNumber(a.name);
