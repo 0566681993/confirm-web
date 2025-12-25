@@ -17,7 +17,7 @@
     .folder-name { font-weight: bold; color: #0066cc; }
     input[type="email"] {
       width: 100%; max-width: 300px; padding: 8px; margin: 10px 0;
-      border: 1px solid #ccc; border-radius: 3px; font-size: clamp(12px, 3.5vw, 14px);
+      border: 1px solid #ccc; border-radius: 3px;
     }
     .button-container {
       display: flex; justify-content: center; gap: 10px; margin: 10px 0;
@@ -25,85 +25,36 @@
     button {
       background: #ff4d4d; color: white; border: none;
       padding: 8px 15px; border-radius: 3px; cursor: pointer;
-      font-size: clamp(12px, 3.5vw, 14px);
     }
     button:hover { background: #e60000; }
-    #status { color: #333; font-size: clamp(12px, 3.5vw, 14px); }
     #status.success { color: green; }
     #status.error { color: red; }
-    @media screen and (max-width: 600px) {
-      body { padding: 10px; }
-      h3 { font-size: clamp(16px, 4.5vw, 18px); }
-      p { font-size: clamp(12px, 3.2vw, 14px); }
-      input[type="email"], button {
-        font-size: clamp(10px, 3vw, 12px); padding: 6px 10px;
-      }
-      .button-container { gap: 5px; }
-    }
   </style>
 </head>
+
 <body>
   <h3>Gửi yêu cầu truy cập</h3>
-  <p id="folderInfo">📁 Truyện : <span class="folder-name">...</span></p>
-  <p id="deviceInfo">📱 Mã thiết bị: <span id="deviceIdDisplay">...</span></p>
-  <p id="browserinfo">🌏Trình duyệt: <span id="browser-Name">...</span></p>
+
+  <p id="folderInfo">📁 Truyện: <span class="folder-name">...</span></p>
+  <p>📱 Mã thiết bị: <span id="deviceIdDisplay">...</span></p>
+  <p>🌏 Trình duyệt: <span id="browser-Name">...</span></p>
+
   <input type="email" id="email" placeholder="Nhập Tên hoặc Email..." />
+
   <div class="button-container">
     <button onclick="sendEmail()">Gửi yêu cầu</button>
     <button onclick="goBack()">Quay lại trang chủ</button>
   </div>
+
   <p id="status"></p>
+
   <h3>Khi được duyệt vui lòng chỉ sử dụng trình duyệt dùng để gửi yêu cầu để đọc truyện nhé !</h3>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    const folderName = localStorage.getItem('errorFolderName') || 'Không rõ thư mục';
-    document.getElementById("folderInfo").innerHTML = `📁 Truyện: <span class="folder-name">${folderName}</span>`;
-	const deviceId = getDeviceId();
-  	document.getElementById("deviceIdDisplay").textContent = deviceId;
-	const browser = getBrowserInfo();
-	document.getElementById("browser-Name").textContent = browser.name;
-    // Supabase config
-    const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-	function getBrowserInfo() {
-  const userAgent = navigator.userAgent;
-  let browserName = "Unknown";
-  let browserVersion = "Unknown";
+    /* ================= HÀM TIỆN ÍCH – ĐƯA LÊN ĐẦU (FIX LỖI) ================= */
 
-  // Kiểm tra các trình duyệt phổ biến
-  if (userAgent.includes("Firefox")) {
-    browserName = "Mozilla Firefox";
-    const versionMatch = userAgent.match(/Firefox\/(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
-  } else if (userAgent.includes("Edg")) {
-    browserName = "Microsoft Edge";
-    const versionMatch = userAgent.match(/Edg\/(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
-  } else if (userAgent.includes("Chrome")) {
-    browserName = "Google Chrome";
-    const versionMatch = userAgent.match(/Chrome\/(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
-  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
-    browserName = "Apple Safari";
-    const versionMatch = userAgent.match(/Version\/(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[1] : "Unknown";
-  } else if (userAgent.includes("OPR") || userAgent.includes("Opera")) {
-    browserName = "Opera";
-    const versionMatch = userAgent.match(/(OPR|Opera)\/(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[2] : "Unknown";
-  } else if (userAgent.includes("Trident") || userAgent.includes("MSIE")) {
-    browserName = "Internet Explorer";
-    const versionMatch = userAgent.match(/(MSIE|rv:)(\d+\.\d+)/);
-    browserVersion = versionMatch ? versionMatch[2] : "Unknown";
-  }
-
-  return {
-    name: browserName,
-    version: browserVersion,
-    userAgent: userAgent // Trả về userAgent gốc để debug nếu cần
-  };
-}
     function getDeviceId() {
       let id = localStorage.getItem("deviceId");
       if (!id) {
@@ -113,96 +64,102 @@
       return id;
     }
 
+    function getBrowserInfo() {
+      const ua = navigator.userAgent;
+      let name = "Unknown";
+
+      if (ua.includes("Edg")) name = "Microsoft Edge";
+      else if (ua.includes("Chrome")) name = "Google Chrome";
+      else if (ua.includes("Firefox")) name = "Mozilla Firefox";
+      else if (ua.includes("Safari") && !ua.includes("Chrome")) name = "Apple Safari";
+      else if (ua.includes("OPR") || ua.includes("Opera")) name = "Opera";
+
+      return { name, userAgent: ua };
+    }
+
     function extractFolderId(folderName) {
-      const match = folderName.match(/^(\d+)\./);
+      const match = folderName.match(/^(\d+)/);
       return match ? parseInt(match[1]) : null;
     }
 
-	async function sendEmail() {
-	  const emailInput = document.getElementById("email").value.trim();
-	  const deviceId = getDeviceId();
-	  const name = folderName;
-	  const folderId = extractFolderId(folderName);
-	  const statusEl = document.getElementById("status");
-		
+    /* ================= LẤY DỮ LIỆU TỪ INDEX.HTML ================= */
+
+    const folderName = localStorage.getItem("errorFolderName") || "Không rõ thư mục";
+    document.getElementById("folderInfo").innerHTML =
+      `📁 Truyện: <span class="folder-name">${folderName}</span>`;
+
+    const deviceId = getDeviceId();
+    document.getElementById("deviceIdDisplay").textContent = deviceId;
+
+    const browser = getBrowserInfo();
+    document.getElementById("browser-Name").textContent = browser.name;
+
+    /* ================= SUPABASE ================= */
+
+    const SUPABASE_URL = "https://rtxdvcvzkepogytpnvsi.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ================= GỬI EMAIL ================= */
+
+    async function sendEmail() {
+      const emailInput = document.getElementById("email").value.trim();
+      const statusEl = document.getElementById("status");
+      const folderId = extractFolderId(folderName);
+
       if (!emailInput) {
         statusEl.textContent = "Vui lòng nhập email.";
         statusEl.className = "error";
         return;
       }
-	  try {
-        // Kiểm tra xem bản ghi đã tồn tại chưa
-        const { data: existingRecord, error: checkError } = await supabase
-          .from('approved_access')
-          .select('id')
-          .eq('device_id', deviceId)
-          .eq('folder_id', folderId)
-          .single({ headers: { 'Accept': 'application/json' } });
 
-        if (checkError && checkError.code !== 'PGRST116') {
-          throw new Error(`Lỗi kiểm tra bản ghi: ${checkError.message}`);
-        }
+      try {
+        const { data: existing, error: checkError } = await supabase
+          .from("approved_access")
+          .select("id")
+          .eq("device_id", deviceId)
+          .eq("folder_id", folderId)
+          .single();
 
-        if (existingRecord) {
+        if (existing) {
           statusEl.textContent = "Yêu cầu đã tồn tại, đang chờ duyệt.";
           statusEl.className = "success";
-          return; // Không ghi mới nếu đã tồn tại
+          return;
         }
 
-        // Ghi mới bản ghi nếu chưa tồn tại
-        const { error: insertError } = await supabase
-          .from('approved_access')
-          .insert({
+        await supabase.from("approved_access").insert({
+          device_id: deviceId,
+          folder_id: folderId,
+          folder_name: folderName,
+          name_email: emailInput,
+          browser_name: browser.name,
+          approval: false
+        });
+
+        await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            email: emailInput,
             device_id: deviceId,
-            folder_id: folderId,
             folder_name: folderName,
-            name_email: emailInput,
-			brower_name: browser.name,
-            approval: false
-          });
+            browser: browser.name
+          })
+        });
 
-        if (insertError) {
-          throw new Error(`Lỗi ghi dữ liệu: ${insertError.message}`);
-        }
+        statusEl.textContent = "✅ Đã gửi yêu cầu. Vui lòng đợi admin duyệt.";
         statusEl.className = "success";
-        //document.getElementById("email").value = "";
-      } catch (error) {
-        console.error("Lỗi:", error);
-        statusEl.textContent = "❌ Gửi yêu cầu thất bại. Vui lòng thử lại.";
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "❌ Gửi yêu cầu thất bại.";
         statusEl.className = "error";
       }
-	  await fetch("https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec", {
-		method: "POST",
-		headers: {
-		  'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body: new URLSearchParams({
-		  email: emailInput,
-		  device_id: deviceId,
-		  folder_name: name,
-		  browser: browser.name
-		})
-	  });
-
-	  document.getElementById("status").textContent = "✅ Đã gửi yêu cầu. Vui lòng đợi admin duyệt.";
-	  document.getElementById("status").className = "success";
-	}
-
-    function goBack() {
-      window.location.href = 'index.html';
     }
 
-    // Ngăn sao chép & mở console
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (e.key === 'F11' || 
-          (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) || 
-          (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-      }
-    });
-    document.addEventListener('copy', e => e.preventDefault());
-    document.addEventListener('dragstart', e => e.preventDefault());
+    function goBack() {
+      window.location.href = "index.html";
+    }
   </script>
 </body>
 </html>
