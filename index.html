@@ -1,140 +1,133 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📙 TRUYỆN DỊCH 📙</title>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-body{font-family:'Be Vietnam Pro',sans-serif;margin:0;padding:15px;user-select:none;background:#f0f0f0}
-a{cursor:pointer;text-decoration:none}
-.folder{font-weight:700;color:#0066cc}
-.folder:hover{color:#ff6600}
-.children{margin-left:15px;display:none}
-.file-link{color:red}
-#error{color:red}
-#fileViewer{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999}
-#fileFrame{width:100%;height:calc(100% - 40px);border:none}
-.navigation{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:5px;background:#fff}
-button{background:red;color:#fff;border:none;padding:5px 10px;border-radius:5px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📙 TRUYỆN DỊCH 📙</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+      padding: 15px;
+      margin: 0;
+      user-select: none;
+      overflow-x: hidden;
+      background: #f0f0f0;
+    }
+    h2 { margin-bottom: 15px; }
+    ul { list-style: none; padding-left: 10px; }
+    a.folder { font-weight: bold; color: #0066cc; cursor: pointer; display: block; }
+    a.folder:hover { color: #ff6600; }
+    .children { margin-left: 15px; display: none; }
+    .file-link { color: red; text-decoration: none; cursor: pointer; }
+    .file-link:hover { text-decoration: underline; }
+    .error-message { color: red; text-align: center; }
+  </style>
 </head>
 
 <body oncontextmenu="return false">
-<h2>📙 DANH SÁCH TRUYỆN DỊCH 📙</h2>
-<ul id="folderList">⏳ Đang tải…</ul>
 
-<div id="fileViewer">
-  <iframe id="fileFrame"></iframe>
-  <div class="navigation" id="navigationButtons"></div>
-</div>
+<h2>📙 DANH SÁCH TRUYỆN DỊCH 📙</h2>
+<ul id="folderList">⏳ Đang tải...</ul>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const API_KEY='AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
-const ROOT_FOLDER_ID='1-Q-ctnxeZpbYUCcqpTOnuY2jw2LIiHJZ';
-const SUPABASE_URL='https://rtxdvcvzkepogytpnvsi.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+/* ================== CONFIG ================== */
+const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
+const ROOT_FOLDER_ID = '1-Q-ctnxeZpbYUCcqpTOnuY2jw2LIiHJZ';
+const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
 
+/* ================== SUPABASE ================== */
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-function getDeviceId(){
-  let id=localStorage.getItem('deviceId');
-  if(!id){id=crypto.randomUUID();localStorage.setItem('deviceId',id);}
+/* ================== DEVICE ================== */
+function getDeviceId() {
+  let id = localStorage.getItem('deviceId');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('deviceId', id);
+  }
   return id;
 }
 
-function normalizeFolderName(name){
-  const m=name.match(/^(\d+)/);
-  return m?parseInt(m[1]):Infinity;
-}
+/* ================== ACCESS ================== */
+async function checkFolderAccess(folderName, deviceId) {
+  const match = folderName.match(/^(\d+)/);
+  const folderNumber = match ? parseInt(match[1]) : null;
 
-async function checkFolderAccess(folderName,deviceId){
-  const fid=normalizeFolderName(folderName);
-  const {data,error}=await supabaseClient
+  const { data, error } = await supabaseClient
     .from('approved_access')
     .select('approval')
-    .eq('folder_id',fid)
-    .eq('device_id',deviceId)
+    .eq('folder_id', folderNumber)
+    .eq('device_id', deviceId)
     .single();
-  if(error && error.code!=='PGRST116'){
+
+  if (error && error.code !== 'PGRST116') {
     throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
   }
-  return data && data.approval===true;
+
+  return data && data.approval === true;
 }
 
-async function fetchFolderContents(folderId){
-  const url=`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
-  const res=await fetch(url);
-  if(!res.ok) throw new Error(`Drive API lỗi ${res.status}`);
-  const data=await res.json();
-  return data.files||[];
+/* ================== DRIVE ================== */
+async function fetchFolderContents(folderId) {
+  const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.files || [];
 }
 
-function isImageFile(n){
-  n=n.toLowerCase();
-  return n.endsWith('.jpg')||n.endsWith('.png')||n.endsWith('.jpeg')||n.endsWith('.webp');
-}
+/* ================== UI ================== */
+function createFolderItem(name, id) {
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  a.className = 'folder';
+  a.textContent = `📚 ${name}`;
 
-function createFolderItem(name,id){
-  const li=document.createElement('li');
-  const a=document.createElement('a');
-  a.className='folder';
-  a.textContent='📚 '+name;
+  const children = document.createElement('div');
+  children.className = 'children';
 
-  const children=document.createElement('div');
-  children.className='children';
-  let loaded=false;
+  let loaded = false;
 
-  a.onclick=async()=>{
-    try{
-      const deviceId=getDeviceId();
-      const ok=await checkFolderAccess(name,deviceId);
-      if(!ok){
-        localStorage.setItem('errorFolderName',name);
-        localStorage.setItem('deviceId',deviceId);
-        localStorage.setItem('userAgent',navigator.userAgent);
-        window.location.href='email.html';
+  a.onclick = async () => {
+    try {
+      const deviceId = getDeviceId();
+      const allowed = await checkFolderAccess(name, deviceId);
+
+      if (!allowed) {
+        localStorage.setItem('errorFolderName', name);
+        localStorage.setItem('deviceId', deviceId);
+        localStorage.setItem('userAgent', navigator.userAgent);
+        window.location.href = 'email.html';
         return;
       }
 
-      children.style.display = children.style.display==='block'?'none':'block';
-      if(loaded) return;
-      loaded=true;
+      if (!loaded) {
+        children.innerHTML = '⏳ Đang tải...';
+        const items = await fetchFolderContents(id);
+        children.innerHTML = '';
 
-      const items=await fetchFolderContents(id);
-      const ul=document.createElement('ul');
-
-      items.forEach(it=>{
-        if(it.mimeType.includes('folder')){
-          ul.appendChild(createFolderItem(it.name,it.id));
-        }else{
-          const li2=document.createElement('li');
-          const f=document.createElement('a');
-          f.className='file-link';
-          f.textContent='📗 '+it.name.replace(/\.[^/.]+$/,'');
-          f.onclick=()=>{
-            document.getElementById('fileViewer').style.display='block';
-            document.getElementById('fileFrame').src=
-              `https://drive.google.com/file/d/${it.id}/preview`;
-            document.getElementById('navigationButtons').innerHTML=
-              `<button onclick="document.getElementById('fileViewer').style.display='none'">Đóng</button>`;
-          };
-          li2.appendChild(f);
+        const ul = document.createElement('ul');
+        items.forEach(item => {
+          const li2 = document.createElement('li');
+          li2.textContent = item.name;
           ul.appendChild(li2);
-        }
-      });
+        });
 
-      children.appendChild(ul);
-    }catch(e){
-      console.error(e);
-      localStorage.setItem('errorFolderName',name);
-      localStorage.setItem('deviceId',getDeviceId());
-      localStorage.setItem('userAgent',navigator.userAgent);
-      window.location.href='email.html';
+        children.appendChild(ul);
+        loaded = true;
+      }
+
+      children.style.display = children.style.display === 'block' ? 'none' : 'block';
+
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -143,13 +136,15 @@ function createFolderItem(name,id){
   return li;
 }
 
-async function init(){
-  const list=document.getElementById('folderList');
-  list.innerHTML='';
-  const items=await fetchFolderContents(ROOT_FOLDER_ID);
-  items.forEach(it=>{
-    if(it.mimeType.includes('folder')){
-      list.appendChild(createFolderItem(it.name,it.id));
+/* ================== INIT ================== */
+async function init() {
+  const list = document.getElementById('folderList');
+  list.innerHTML = '';
+
+  const items = await fetchFolderContents(ROOT_FOLDER_ID);
+  items.forEach(item => {
+    if (item.mimeType === 'application/vnd.google-apps.folder') {
+      list.appendChild(createFolderItem(item.name, item.id));
     }
   });
 }
