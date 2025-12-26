@@ -40,21 +40,16 @@
 <h2>🧪 GỬI YÊU CẦU ĐỌC TRUYỆN</h2>
 
 <div class="box">
-  <b>Device ID:</b>
+  <b>Mã thiết bị:</b>
   <div id="deviceId">...</div>
 </div>
 
 <div class="box">
-  <b>Browser:</b>
+  <b>Trình duyệt:</b>
   <div id="browserName">...</div>
 </div>
 
-<div class="box">
-  <b>UserAgent:</b>
-  <div id="ua">...</div>
-</div>
-
-<div class="box">
+<div class="box" style="display:none">
   <b>Tên truyện:</b>
   <div id="folderNameDisplay">...</div>
 </div>
@@ -72,10 +67,7 @@
 const SUPABASE_URL = "https://rtxdvcvzkepogytpnvsi.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ========= DEVICE ID ========= */
 function getDeviceId(){
@@ -112,7 +104,6 @@ const folderId = extractFolderId(folderName);
 
 document.getElementById("deviceId").textContent = deviceId;
 document.getElementById("browserName").textContent = browser.name;
-document.getElementById("ua").textContent = browser.ua;
 document.getElementById("folderNameDisplay").textContent = folderName;
 
 /* ========= SEND ========= */
@@ -130,23 +121,39 @@ async function sendRequest(){
   status.style.color = "#333";
 
   try {
-    /* 1️⃣ GHI SUPABASE */
-    const { error } = await supabaseClient
+    // ===== 1️⃣ Kiểm tra bản ghi đã tồn tại =====
+    const { data: existingRecord, error: checkError } = await supabaseClient
+      .from("approved_access")
+      .select("id")
+      .eq("device_id", deviceId)
+      .eq("folder_id", folderId)
+      .single();
+
+    if (checkError && checkError.code !== "PGRST116") {
+      throw new Error(`Lỗi kiểm tra bản ghi: ${checkError.message}`);
+    }
+
+    if (existingRecord) {
+      status.textContent = "⚠️ Yêu cầu đã tồn tại, đang chờ duyệt.";
+      status.style.color = "orange";
+      return; // Không ghi mới
+    }
+
+    // ===== 2️⃣ Ghi mới nếu chưa tồn tại =====
+    const { error: insertError } = await supabaseClient
       .from("approved_access")
       .insert({
         device_id: deviceId,
         name_email: email,
         folder_name: folderName,
         folder_id: folderId,
-        brower_name: browser.name,
+        browser_name: browser.name,
         approval: false
       });
 
-    if(error){
-      throw error;
-    }
+    if (insertError) throw insertError;
 
-    /* 2️⃣ GỬI EMAIL */
+    // ===== 3️⃣ Gửi email =====
     const res = await fetch(
       "https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec",
       {
@@ -154,18 +161,15 @@ async function sendRequest(){
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           folder_name: folderName,
-          device_id: deviceId,
           folder_id: folderId,
+          device_id: deviceId,
           email: email,
-          browser: browser.name,
-          useragent: browser.ua
+          browser: browser.name
         })
       }
     );
 
-    if(!res.ok){
-      throw new Error("Gửi email thất bại");
-    }
+    if(!res.ok) throw new Error("Gửi email thất bại");
 
     status.textContent = "✅ Đã gửi yêu cầu thành công!";
     status.style.color = "green";
@@ -176,8 +180,17 @@ async function sendRequest(){
     status.style.color = "red";
   }
 }
+
+// Ngăn sao chép & mở console  
+document.addEventListener('contextmenu', e => e.preventDefault());  
+document.addEventListener('keydown', e => {  
+  if (e.key === 'F11' ||   
+      (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) ||   
+      (e.ctrlKey && e.key === 'U')) {  
+    e.preventDefault();  
+  }  
+}); 
 </script>
 
 </body>
 </html>
-
