@@ -522,6 +522,9 @@ async function fetchFolderContents(folderId) {
         document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;  
       }  
     }  
-    init();  
+    init();
+  console.log('folderId type:', typeof folderId, 'value:', folderId);
+  console.log('deviceId type:', typeof deviceId, 'value:', deviceId);
+
   </script>  </body>  
 </html>
