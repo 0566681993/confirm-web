@@ -212,25 +212,13 @@ a.folder:hover {
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';  
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';  
   
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  
+    const supabasea = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  
   
     let currentImages = [];  
     let currentImageIndex = 0;  
     let currentFolderId = '';  
     let currentFolderName = '';  
-  
-    document.addEventListener('contextmenu', e => e.preventDefault());  
-    document.addEventListener('keydown', e => {  
-      if (e.key === 'F12' ||   
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||   
-          (e.ctrlKey && e.key === 'U') ||   
-          e.key === 'PrintScreen') {  
-        e.preventDefault();  
-        alert('Chụp màn hình hoặc truy cập DevTools bị cấm!');  
-      }  
-    });  
-    document.addEventListener('copy', e => e.preventDefault());  
-    document.addEventListener('dragstart', e => e.preventDefault());  
+    
   
 function normalizeFolderName(name) {  
   // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"  
@@ -250,8 +238,8 @@ function normalizeFolderName(name) {
     async function checkFolderAccess(folderName, deviceId) {  
       try {  
         const normalizedFolderName = normalizeFolderName(folderName);  
-        console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });  
-        const { data, error } = await supabase  
+        //console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });  
+        const { data, error } = await supabasea  
           .from('approved_access')  
           .select('approval')  
           .eq('folder_id', normalizedFolderName)  
