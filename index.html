@@ -54,16 +54,6 @@
       display: none;
     }
 
-    .file-link {
-      text-decoration: none;
-      color: red;
-      display: block;
-    }
-
-    .file-link:hover {
-      text-decoration: underline;
-    }
-
     #fileViewer {
       display: none;
       position: fixed;
@@ -148,26 +138,17 @@
     const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
     const ROOT_FOLDER_ID = '1-Q-ctnxeZpbYUCcqpTOnuY2jw2LIiHJZ';
 
-    const SUPABASE_URL =
-      'https://rtxdvcvzkepogytpnvsi.supabase.co';
+    const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
 
-    const SUPABASE_ANON_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-
-    const supabase2 =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
+    const supabase2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function getDeviceId() {
       let deviceId = localStorage.getItem('deviceId');
-
       if (!deviceId) {
         deviceId = crypto.randomUUID();
         localStorage.setItem('deviceId', deviceId);
       }
-
       return deviceId;
     }
 
@@ -176,41 +157,11 @@
       return match ? parseInt(match[1]) : Infinity;
     }
 
-    async function checkFolderAccess(folderName, deviceId) {
-      try {
-        const normalizedFolderId =
-          normalizeFolderName(folderName);
-
-        const { data, error } = await supabase2
-          .from('approved_access')
-          .select('approval')
-          .eq('folder_id', normalizedFolderId)
-          .eq('device_id', deviceId);
-
-        if (error) throw error;
-
-        return (
-          data.length > 0 &&
-          data[0].approval === true
-        );
-      } catch (error) {
-        console.error('Lỗi kiểm tra quyền:', error);
-        return false;
-      }
-    }
-
     async function fetchFolderContents(folderId) {
       try {
-        const url =
-          `https://www.googleapis.com/drive/v3/files` +
-          `?q='${folderId}'+in+parents` +
-          `&key=${API_KEY}` +
-          `&fields=files(id,name,mimeType)` +
-          `&pageSize=50`;
-
+        const url = `https://www.googleapis.com/drive/v3/files?q='\( {folderId}'+in+parents&key= \){API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;
         const res = await fetch(url);
         const data = await res.json();
-
         return data.files || [];
       } catch (error) {
         console.error(error);
@@ -219,9 +170,7 @@
     }
 
     async function getHtmlContent(fileId) {
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`
-      );
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/\( {fileId}?alt=media&key= \){API_KEY}`);
       return await res.text();
     }
 
@@ -239,97 +188,81 @@
       let loaded = false;
 
       link.onclick = async () => {
-  const deviceId = getDeviceId();
+        const deviceId = getDeviceId();
 
-  if (childrenDiv.style.display === 'none') {
-    childrenDiv.style.display = 'block';
+        if (childrenDiv.style.display === 'none') {
+          childrenDiv.style.display = 'block';
 
-    if (!loaded) {
-      // Kiểm tra quyền trước khi load nội dung
-      try {
-        const normalizedFolderId = normalizeFolderName(name);
-        const { data, error } = await supabase2
-          .from('approved_access')
-          .select('approval')
-          .eq('folder_id', normalizedFolderId)
-          .eq('device_id', deviceId);
+          if (!loaded) {
+            // Kiểm tra quyền và hiện thông báo
+            try {
+              const normalizedFolderId = normalizeFolderName(name);
+              const { data, error } = await supabase2
+                .from('approved_access')
+                .select('approval')
+                .eq('folder_id', normalizedFolderId)
+                .eq('device_id', deviceId);
 
-        if (error) throw error;
+              if (error) throw error;
 
-        if (data.length > 0 && data[0].approval === true) {
-          alert('✅ Đã được duyệt – Mở thư mục thành công!');
-          // Có quyền → load nội dung bình thường
+              if (data.length > 0 && data[0].approval === true) {
+                alert('✅ Đã được duyệt – Mở thư mục thành công!');
+              } else {
+                alert('❌ Chưa được duyệt hoặc chưa gửi yêu cầu cho truyện này.');
+              }
+            } catch (err) {
+              console.error('Lỗi kiểm tra quyền:', err);
+              alert('⚠️ Lỗi kết nối Supabase: ' + err.message);
+            }
+
+            // Load nội dung thư mục (luôn chạy)
+            const items = await fetchFolderContents(folderId);
+            const ul = document.createElement('ul');
+
+            items.forEach(item => {
+              if (item.mimeType === 'application/vnd.google-apps.folder') {
+                ul.appendChild(createFolderItem(item.name, item.id));
+              } else {
+                const liItem = document.createElement('li');
+                const a = document.createElement('a');
+
+                a.textContent = '📗 ' + item.name.replace(/\.[^/.]+$/, '');
+                a.onclick = async () => {
+                  document.getElementById('fileViewer').style.display = 'block';
+                  const content = await getHtmlContent(item.id);
+                  const iframe = document.getElementById('fileFrame');
+                  iframe.contentDocument.open();
+                  iframe.contentDocument.write(content);
+                  iframe.contentDocument.close();
+                };
+
+                liItem.appendChild(a);
+                ul.appendChild(liItem);
+              }
+            });
+
+            childrenDiv.appendChild(ul);
+            loaded = true;
+          }
         } else {
-          alert('❌ Chưa được duyệt hoặc chưa gửi yêu cầu cho truyện này.');
-          // Vẫn cho load nội dung để bạn test (nếu muốn chặn thì comment dòng dưới)
-          // Nếu muốn chặn hoàn toàn khi chưa duyệt, thêm: return; ở đây
-        }
-      } catch (err) {
-        console.error('Lỗi kiểm tra quyền:', err);
-        alert('⚠️ Lỗi kết nối Supabase: ' + err.message);
-      }
-
-      // Load danh sách file/thư mục con (luôn chạy, kể cả chưa duyệt)
-      const items = await fetchFolderContents(folderId);
-      const ul = document.createElement('ul');
-
-      items.forEach(item => {
-        if (item.mimeType === 'application/vnd.google-apps.folder') {
-          ul.appendChild(createFolderItem(item.name, item.id));
-        } else {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-
-          a.textContent = '📗 ' + item.name.replace(/\.[^/.]+$/, '');
-          a.onclick = async () => {
-            document.getElementById('fileViewer').style.display = 'block';
-            const content = await getHtmlContent(item.id);
-            const iframe = document.getElementById('fileFrame');
-            iframe.contentDocument.open();
-            iframe.contentDocument.write(content);
-            iframe.contentDocument.close();
-          };
-
-          li.appendChild(a);
-          ul.appendChild(li);
-        }
-      });
-
-      childrenDiv.appendChild(ul);
-      loaded = true;
-    }
-  } else {
-    childrenDiv.style.display = 'none';
-  }
-};
-        } catch (e) {
-          console.error(e);
+          childrenDiv.style.display = 'none';
         }
       };
 
       li.appendChild(link);
       li.appendChild(childrenDiv);
-
       return li;
     }
 
     async function init() {
-      const list =
-        document.getElementById('folderList');
-
+      const list = document.getElementById('folderList');
       list.innerHTML = '';
 
-      const items =
-        await fetchFolderContents(ROOT_FOLDER_ID);
+      const items = await fetchFolderContents(ROOT_FOLDER_ID);
 
       items.forEach(item => {
-        if (
-          item.mimeType ===
-          'application/vnd.google-apps.folder'
-        ) {
-          list.appendChild(
-            createFolderItem(item.name, item.id)
-          );
+        if (item.mimeType === 'application/vnd.google-apps.folder') {
+          list.appendChild(createFolderItem(item.name, item.id));
         }
       });
     }
