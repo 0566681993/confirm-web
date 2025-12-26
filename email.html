@@ -181,19 +181,32 @@ async function sendRequest(){
   }
 }
 
-// Ngăn sao chép & mở console  
-document.addEventListener('contextmenu', e => e.preventDefault());  
-document.addEventListener('keydown', e => {  
-  if (e.key === 'F11' ||   
-      (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) ||   
-      (e.ctrlKey && e.key === 'U')) {  
-    e.preventDefault();  
-  }  
-}); 
+document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+    }
+
+    // Ctrl + Shift + I / C / J / K
+    if (e.ctrlKey && e.shiftKey) {
+        const blockedKeys = ['I', 'C', 'J', 'K'];
+        if (blockedKeys.includes(e.key.toUpperCase())) {
+            e.preventDefault();
+        }
+    }
+
+    // Ctrl + U (view source)
+    if (e.ctrlKey && e.key.toUpperCase() === 'U') {
+        e.preventDefault();
+    }
+
+    // Ctrl + Shift + E (Firefox dev tools) nếu muốn thêm
+});
 </script>
 
 </body>
 </html>
+
 
 
 
