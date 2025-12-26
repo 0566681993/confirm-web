@@ -234,34 +234,6 @@ function getDeviceId() {
   return deviceId;  
 }  
   
-async function checkFolderAccess(folderName, deviceId) {
-  const normalizedFolderId = normalizeFolderName(folderName);
-  const { data, error } = await supabase2
-    .from('approved_access')
-    .select('approval')
-    .eq('folder_id', normalizedFolderId)
-    .eq('device_id', deviceId)
-    .limit(1);
-  if (error) {
-    console.error("Supabase error:", error);
-  }
-  // ✅ CÓ QUYỀN
-  if (data && data.length > 0 && data[0].approval === true) {
-    return true;
-  }
-
-  // ❌ KHÔNG CÓ QUYỀN → LƯU + CHUYỂN EMAIL
-  const requestData = {
-    folderName: folderName,
-    normalizedFolderId: normalizedFolderId,
-    deviceId: deviceId
-  };
-
-  localStorage.setItem('accessRequest', JSON.stringify(requestData));
-
-  window.location.href = 'email.html';
-  return false;
-}
 
 async function fetchFolderContents(folderId) {  
   try {  
@@ -316,7 +288,21 @@ async function fetchFolderContents(folderId) {
         return `<p class="error-message">Lỗi tải nội dung: ${error.message}</p>`;  
       }  
     }  
-  
+    async function checkFolderAccess(folderName, deviceId) {
+        try {
+          const normalizedFolderId = normalizeFolderName(folderName);
+          const { data, error } = await supabase2
+            .from('approved_access')
+            .select('approval')
+            .eq('folder_id', normalizedFolderId)
+            .eq('device_id', deviceId);
+          if (error) throw error;
+          return data.length > 0 && data[0].approval === true;
+        } catch (error) {
+          console.error('Lỗi kiểm tra quyền:', error);
+          return false;
+        }
+      }  
     function createFolderItem(name, folderId) {  
       const li = document.createElement('li');  
       const link = document.createElement('a');  
