@@ -317,118 +317,96 @@ async function fetchFolderContents(folderId) {
       }  
     }  
   
-    function createFolderItem(name, folderId) {
-  const li = document.createElement('li');
-
-  const link = document.createElement('a');
-  link.className = 'folder';
-  link.textContent = `📚 ${name}`;
-  link.style.cursor = 'pointer';
-
-  const childrenDiv = document.createElement('div');
-  childrenDiv.className = 'children';
-  childrenDiv.style.display = 'none';
-
-  let loaded = false;
-
-  link.onclick = async () => {
-    const deviceId = getDeviceId();
-
-    try {
-      // 🔎 CHECK QUYỀN
-      const hasAccess = await checkFolderAccess(name, deviceId);
-
-      // ❌ KHÔNG CÓ QUYỀN → LƯU + CHUYỂN TRANG
-      if (!hasAccess) {
-        localStorage.setItem('accessRequest', JSON.stringify({
-          folderName: name,
-          folderId: normalizeFolderName(name),
-          deviceId
-        }));
-
-        window.location.href = 'email.html';
-        return; // ⛔ RẤT QUAN TRỌNG
-      }
-
-      // ✅ CÓ QUYỀN → MỞ THƯ MỤC
-      if (childrenDiv.style.display === 'none') {
-        childrenDiv.style.display = 'block';
-
-        if (!loaded) {
-          childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';
-
-          const items = await fetchFolderContents(folderId);
-          childrenDiv.innerHTML = '';
-
-          if (items.length === 0) {
-            childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';
-          } else {
-            const subUl = document.createElement('ul');
-
-            items.forEach(item => {
-              if (item.mimeType === 'application/vnd.google-apps.folder') {
-                subUl.appendChild(createFolderItem(item.name, item.id));
-              } else {
-                const fileLi = document.createElement('li');
-                const a = document.createElement('a');
-
-                const fileNameWithoutExtension =
-                  item.name.replace(/\.[^/.]+$/, '');
-
-                a.textContent = `📗 ${fileNameWithoutExtension}`;
-                a.href = '#';
-                a.className = 'file-link';
-
-                a.onclick = async () => {
-                  document.getElementById('fileViewer').style.display = 'block';
-
-                  if (item.name.toLowerCase().endsWith('.html')) {
-                    const content = await getHtmlContent(item.id);
-                    const iframe = document.getElementById('fileFrame');
-                    const iframeDoc =
-                      iframe.contentDocument || iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(content);
-                    iframeDoc.close();
-                  } else {
-                    document.getElementById('fileFrame').src =
-                      getFileViewerURL(item);
-                  }
-                };
-
-                fileLi.appendChild(a);
-                subUl.appendChild(fileLi);
-              }
-            });
-
-            childrenDiv.appendChild(subUl);
-          }
-
-          loaded = true;
-        }
-      } else {
-        childrenDiv.style.display = 'none';
-      }
-    } catch (err) {
-      console.error('Lỗi khi mở thư mục:', err);
-
-      // fallback an toàn
-      localStorage.setItem('accessRequest', JSON.stringify({
-        folderName: name,
-        folderId: normalizeFolderName(name),
-        deviceId
-      }));
-
-      window.location.href = 'email.html';
+    function createFolderItem(name, folderId) {  
+      const li = document.createElement('li');  
+      const link = document.createElement('a');  
+      link.className = 'folder';  
+      link.textContent = `📚 ${name}`;  
+      link.removeAttribute('href');   
+      link.style.cursor = 'pointer';  
+  
+      const childrenDiv = document.createElement('div');  
+      childrenDiv.className = 'children';  
+  
+      let loaded = false;  
+  
+      link.onclick = async () => {  
+        const deviceId = getDeviceId();  
+        try {  
+          const hasAccess = await checkFolderAccess(name, deviceId);  
+          if (!hasAccess) {  
+            currentFolderName = name;  
+            //document.getElementById('requestModal').style.display = 'flex';  
+            return;  
+          }  
+          if (childrenDiv.style.display === 'none') {  
+            childrenDiv.style.display = 'block';  
+            if (!loaded) {  
+              childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';  
+              const items = await fetchFolderContents(folderId);  
+              childrenDiv.innerHTML = '';  
+              if (items.length === 0) {  
+                childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';  
+              } else {  
+                const subUl = document.createElement('ul');  
+                items.forEach(item => {  
+                  if (item.mimeType === 'application/vnd.google-apps.folder') {  
+                    subUl.appendChild(createFolderItem(item.name, item.id));  
+                  } else {  
+                    const fileLi = document.createElement('li');  
+                    const a = document.createElement('a');  
+                    const fileNameWithoutExtension = item.name.replace(/\.[^/.]+$/, ""); // Loại bỏ đuôi file  
+                    a.textContent = `📗 ${fileNameWithoutExtension}`;  
+                    //a.textContent = `📗 ${item.name}`;  
+                    a.href = '#';  
+                    a.className = 'file-link';  
+                    a.onclick = async () => {  
+                      if (item.name.toLowerCase().endsWith('.html')) {  
+                        document.getElementById('fileViewer').style.display = 'block';  
+                        const content = await getHtmlContent(item.id);  
+                        const iframeDoc = document.getElementById('fileFrame').contentDocument || document.getElementById('fileFrame').contentWindow.document;  
+                        iframeDoc.open();  
+                        iframeDoc.write(content);  
+                        iframeDoc.close();  
+                        document.getElementById('navigationButtons').innerHTML = `  
+                          <div class="close-button">  
+                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
+                          </div>  
+                        `;  
+                      } else if (isImageFile(item.name)) {  
+                        showImageInViewer(folderId, item.id);  
+                      } else {  
+                        document.getElementById('fileViewer').style.display = 'block';  
+                        document.getElementById('fileFrame').src = getFileViewerURL(item);  
+                        document.getElementById('navigationButtons').innerHTML = `  
+                          <div class="close-button">  
+                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
+                          </div>  
+                        `;  
+                      }  
+                    };  
+                    fileLi.appendChild(a);  
+                    subUl.appendChild(fileLi);  
+                  }  
+                });  
+                childrenDiv.appendChild(subUl);  
+              }  
+              loaded = true;  
+            }  
+          } else {  
+            childrenDiv.style.display = 'none';  
+          }  
+        } catch (error) {  
+          console.error('Lỗi khi mở thư mục:', error);  
+          localStorage.setItem('errorFolderName', name);  
+          window.location.href = 'email.html';  
+        }  
+      };  
+  
+      li.appendChild(link);  
+      li.appendChild(childrenDiv);  
+      return li;  
     }
-  };
-
-  li.appendChild(link);
-  li.appendChild(childrenDiv);
-  return li;
-}
-  
-  
     function isImageFile(name) {  
       const lowerName = name.toLowerCase();  
       return lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');  
