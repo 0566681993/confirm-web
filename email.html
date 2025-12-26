@@ -92,7 +92,7 @@ function getBrowser(){
 
 /* ========= FOLDER ID ========= */
 function extractFolderId(folderName){
-  const match = folderName.match(/(\d+)$/); // lấy số cuối làm folder ID
+  const match = folderName.match(/^(\d+)/); // lấy số ở đầu chuỗi
   return match ? parseInt(match[1]) : 0;
 }
 
@@ -194,5 +194,6 @@ document.addEventListener('keydown', e => {
 
 </body>
 </html>
+
 
 
