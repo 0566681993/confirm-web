@@ -242,17 +242,17 @@
         const deviceId = getDeviceId();
 
         try {
-          const hasAccess =
-            await checkFolderAccess(name, deviceId);
+          //const hasAccess =
+           // await checkFolderAccess(name, deviceId);
 
-          if (!hasAccess) {
-            localStorage.setItem(
-              'errorFolderName',
-              name
-            );
-            window.location.href = 'email.html';
-            return;
-          }
+          //if (!hasAccess) {
+          //  localStorage.setItem(
+      //      'errorFolderName',
+        //      name
+        //    );
+       //     window.location.href = 'email.html';
+       //     return;
+       //   }
 
           if (childrenDiv.style.display === 'none') {
             childrenDiv.style.display = 'block';
