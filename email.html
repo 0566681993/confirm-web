@@ -181,8 +181,28 @@ async function sendRequest(){
   }
 }
 
-console.log("folderName:", folderName);
-console.log("folderId:", folderId);
+document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+    }
+
+    // Ctrl + Shift + I / C / J / K
+    if (e.ctrlKey && e.shiftKey) {
+        const blockedKeys = ['I', 'C', 'J', 'K'];
+        if (blockedKeys.includes(e.key.toUpperCase())) {
+            e.preventDefault();
+        }
+    }
+
+    // Ctrl + U (view source)
+    if (e.ctrlKey && e.key.toUpperCase() === 'U') {
+        e.preventDefault();
+    }
+
+    // Ctrl + Shift + E (Firefox dev tools) nếu muốn thêm
+});
+
 
 </script>
 
