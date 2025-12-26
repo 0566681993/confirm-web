@@ -524,6 +524,18 @@ async function fetchFolderContents(folderId) {
         document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;  
       }  
     }  
-    init();  
+    init();
+    document.addEventListener('contextmenu', e => e.preventDefault());  
+    document.addEventListener('keydown', e => {  
+      if (e.key === 'F12' ||   
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||   
+          (e.ctrlKey && e.key === 'U') ||   
+          e.key === 'PrintScreen') {  
+        e.preventDefault();  
+        alert('Chụp màn hình hoặc truy cập DevTools bị cấm!');  
+      }  
+    });  
+    document.addEventListener('copy', e => e.preventDefault());  
+    document.addEventListener('dragstart', e => e.preventDefault());  
   </script>  </body>  
 </html>
