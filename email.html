@@ -55,6 +55,11 @@
 </div>
 
 <div class="box">
+  <b>Tên truyện:</b>
+  <div id="folderNameDisplay">...</div>
+</div>
+
+<div class="box">
   <b>Email / Tên:</b>
   <input type="email" id="email" placeholder="Nhập email hoặc tên">
   <button onclick="sendRequest()">📨 Gửi yêu cầu</button>
@@ -93,13 +98,22 @@ function getBrowser(){
   return { name, ua };
 }
 
+/* ========= FOLDER ID ========= */
+function extractFolderId(folderName){
+  const match = folderName.match(/(\d+)$/); // lấy số cuối làm folder ID
+  return match ? parseInt(match[1]) : 0;
+}
+
 /* ========= HIỂN THỊ ========= */
 const deviceId = getDeviceId();
 const browser = getBrowser();
+const folderName = localStorage.getItem("folder_name") || "TEST REQUEST";
+const folderId = extractFolderId(folderName);
 
 document.getElementById("deviceId").textContent = deviceId;
 document.getElementById("browserName").textContent = browser.name;
 document.getElementById("ua").textContent = browser.ua;
+document.getElementById("folderNameDisplay").textContent = folderName;
 
 /* ========= SEND ========= */
 async function sendRequest(){
@@ -122,8 +136,9 @@ async function sendRequest(){
       .insert({
         device_id: deviceId,
         name_email: email,
-        folder_name: "TEST REQUEST",
-        brower_name: browser.name,
+        folder_name: folderName,
+        folder_id: folderId,
+        browser_name: browser.name,
         approval: false
       });
 
@@ -140,8 +155,9 @@ async function sendRequest(){
         body: new URLSearchParams({
           email: email,
           device_id: deviceId,
-          folder_name: "TEST REQUEST",
-          browser: browser.name,
+          folder_name: folderName,
+          folder_id: folderId,
+          brower: browser.name,
           useragent: browser.ua
         })
       }
