@@ -16,22 +16,45 @@
     margin:10px 0;
     word-break: break-all;
   }
-  input, button{
+  input{
     padding:8px;
     font-size:14px;
     margin-top:5px;
     width:100%;
     max-width:360px;
+    box-sizing:border-box;
+  }
+  .button-group{
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
   }
   button{
-    background:#ff4d4d;
-    color:#fff;
+    padding:8px 16px;
+    font-size:14px;
     border:none;
     border-radius:4px;
     cursor:pointer;
+    flex: 1;
+    min-width: 120px;
   }
-  button:hover{ background:#e60000; }
-  #status{ margin-top:10px; font-weight:bold; }
+  button.send{
+    background:#ff4d4d;
+    color:#fff;
+  }
+  button.send:hover{ background:#e60000; }
+  
+  button.back{
+    background:#28a745; /* màu xanh lá đẹp */
+    color:#fff;
+  }
+  button.back:hover{ background:#218838; }
+  
+  #status{ 
+    margin-top:10px; 
+    font-weight:bold; 
+  }
 </style>
 </head>
 
@@ -40,16 +63,16 @@
 <h2>🧪 GỬI YÊU CẦU ĐỌC TRUYỆN</h2>
 
 <div class="box">
-  <b>Mã thiết bị:</b>
+  <b>Mã thiết bị:</b>
   <div id="deviceId">...</div>
 </div>
 
 <div class="box">
-  <b>Trình duyệt:</b>
+  <b>Trình duyệt:</b>
   <div id="browserName">...</div>
 </div>
 
-<div class="box" >
+<div class="box">
   <b>Tên truyện:</b>
   <div id="folderNameDisplay">...</div>
 </div>
@@ -57,7 +80,12 @@
 <div class="box">
   <b>Email / Tên:</b>
   <input type="email" id="email" placeholder="Nhập email hoặc tên">
-  <button onclick="sendRequest()">📨 Gửi yêu cầu</button>
+  
+  <div class="button-group">
+    <button class="send" onclick="sendRequest()">📨 Gửi yêu cầu</button>
+    <button class="back" onclick="window.location.href='index.html'">⬅️ Quay lại</button>
+  </div>
+  
   <div id="status"></div>
 </div>
 
@@ -92,14 +120,14 @@ function getBrowser(){
 
 /* ========= FOLDER ID ========= */
 function extractFolderId(folderName){
-  const match = folderName.match(/^(\d+)/); // lấy số ở đầu chuỗi
+  const match = folderName.match(/^(\d+)/);
   return match ? parseInt(match[1]) : 0;
 }
 
 /* ========= HIỂN THỊ ========= */
 const deviceId = getDeviceId();
 const browser = getBrowser();
-const folderName = localStorage.getItem("errorFolderName") || "KHÔNG RÕ THƯ MỤC";
+const folderName = localStorage.getItem("errorFolderName") || "KHÔNG RÕ THƯ MỤC";
 const folderId = extractFolderId(folderName);
 
 document.getElementById("deviceId").textContent = deviceId;
@@ -136,7 +164,7 @@ async function sendRequest(){
     if (existingRecord) {
       status.textContent = "⚠️ Yêu cầu đã tồn tại, đang chờ duyệt.";
       status.style.color = "orange";
-      return; // Không ghi mới
+      return;
     }
 
     // ===== 2️⃣ Ghi mới nếu chưa tồn tại =====
@@ -182,35 +210,14 @@ async function sendRequest(){
 }
 
 document.addEventListener('keydown', function(e) {
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-    }
-
-    // Ctrl + Shift + I / C / J / K
+    if (e.key === 'F12') e.preventDefault();
     if (e.ctrlKey && e.shiftKey) {
         const blockedKeys = ['I', 'C', 'J', 'K'];
-        if (blockedKeys.includes(e.key.toUpperCase())) {
-            e.preventDefault();
-        }
+        if (blockedKeys.includes(e.key.toUpperCase())) e.preventDefault();
     }
-
-    // Ctrl + U (view source)
-    if (e.ctrlKey && e.key.toUpperCase() === 'U') {
-        e.preventDefault();
-    }
-
-    // Ctrl + Shift + E (Firefox dev tools) nếu muốn thêm
+    if (e.ctrlKey && e.key.toUpperCase() === 'U') e.preventDefault();
 });
-
-
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
