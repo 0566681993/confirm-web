@@ -107,7 +107,7 @@ function extractFolderId(folderName){
 /* ========= HIỂN THỊ ========= */
 const deviceId = getDeviceId();
 const browser = getBrowser();
-const folderName = localStorage.getItem("folder_name") || "TEST REQUEST";
+const folderName = localStorage.getItem("errorFolderName") || "KHÔNG RÕ THƯ MỤC";
 const folderId = extractFolderId(folderName);
 
 document.getElementById("deviceId").textContent = deviceId;
@@ -138,7 +138,7 @@ async function sendRequest(){
         name_email: email,
         folder_name: folderName,
         folder_id: folderId,
-        browser_name: browser.name,
+        brower_name: browser.name,
         approval: false
       });
 
@@ -153,11 +153,11 @@ async function sendRequest(){
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          email: email,
-          device_id: deviceId,
           folder_name: folderName,
+          device_id: deviceId,
           folder_id: folderId,
-          brower: browser.name,
+          email: email,
+          browser: browser.name,
           useragent: browser.ua
         })
       }
@@ -180,3 +180,4 @@ async function sendRequest(){
 
 </body>
 </html>
+
