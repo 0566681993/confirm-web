@@ -234,28 +234,28 @@ function getDeviceId() {
   return deviceId;  
 }  
   
-async function checkFolderAccess(folderName, deviceId) {  
-  try {  
-    const folderId = normalizeFolderName(folderName).toString(); // chuyển sang string
+async function checkFolderAccess(folderName, deviceId) {
+  try {
+    const normalizedFolderId = normalizeFolderName(folderName); // số đầu làm folder_id
+    console.log('Checking access for:', { folderName, normalizedFolderId, deviceId });
+
     const { data, error } = await supabase2
       .from('approved_access')
       .select('approval')
-      .eq('folder_id', folderId)
-      .eq('device_id', deviceId)
-      .single();
+      .eq('folder_id', normalizedFolderId)   // folder_id là int
+      .eq('device_id', deviceId);            // device_id là text
 
-    if (error && error.code !== 'PGRST116') {  
-      throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);  
-    }  
+    if (error) throw error;
 
-    return data ? data.approval === true : false;  
-  } catch (error) {  
-    console.error('Lỗi checkFolderAccess:', error);  
-    return false;  
-  }  
+    console.log('Supabase response:', { data, error });
+    return data.length > 0 && data[0].approval === true;
+
+  } catch (error) {
+    console.error('Lỗi kiểm tra quyền:', error);
+    return false;
+  }
 }
-  
-  
+
 async function fetchFolderContents(folderId) {  
   try {  
     const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=50`;  
