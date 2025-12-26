@@ -71,10 +71,10 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 /* ========= DEVICE ID ========= */
 function getDeviceId(){
-  let id = localStorage.getItem("TEST_DEVICE_ID");
+  let id = localStorage.getItem("deviceId");
   if(!id){
     id = crypto.randomUUID();
-    localStorage.setItem("TEST_DEVICE_ID", id);
+    localStorage.setItem("deviceId", id);
   }
   return id;
 }
@@ -208,6 +208,7 @@ document.addEventListener('keydown', function(e) {
 
 </body>
 </html>
+
 
 
 
