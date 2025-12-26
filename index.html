@@ -217,7 +217,7 @@
     const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';
 
-    const supabaseClient  = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentImages = [];
     let currentImageIndex = 0;
@@ -256,7 +256,7 @@ function normalizeFolderName(name) {
       try {
         const normalizedFolderName = normalizeFolderName(folderName);
         console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
           .from('approved_access')
           .select('approval')
           .eq('folder_id', normalizedFolderName)
@@ -283,7 +283,7 @@ async function fetchFolderContents(folderId) {
     }
     const data = await res.json();
     if (!data.files) {
-      throw new Error(`Không nhận được danh sách file/thư mục.`);
+      throw new Error('Không nhận được danh sách file/thư mục.');
     }
     // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc
     return data.files.sort((a, b) => {
@@ -346,7 +346,7 @@ async function fetchFolderContents(folderId) {
           const hasAccess = await checkFolderAccess(name, deviceId);
           if (!hasAccess) {
             currentFolderName = name;
-            //document.getElementById('requestModal').style.display = 'flex';
+            document.getElementById('requestModal').style.display = 'flex';
             return;
           }
 
