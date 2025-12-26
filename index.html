@@ -225,35 +225,36 @@ function normalizeFolderName(name) {
   return match ? parseInt(match[1]) : Infinity; // Trả về số hoặc Infinity nếu không có số  
 }  
   
-    function getDeviceId() {  
-      let deviceId = localStorage.getItem('deviceId');  
-      if (!deviceId) {  
-        deviceId = crypto.randomUUID();  
-        localStorage.setItem('deviceId', deviceId);  
-      }  
-      return deviceId;  
-    }  
+function getDeviceId() {  
+  let deviceId = localStorage.getItem('deviceId');  
+  if (!deviceId) {  
+    deviceId = crypto.randomUUID();  
+    localStorage.setItem('deviceId', deviceId);  
+  }  
+  return deviceId;  
+}  
   
-    async function checkFolderAccess(folderName, deviceId) {  
-      try {  
-        const normalizedFolderName = normalizeFolderName(folderName);  
-        console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });  
-        const { data, error } = await supabase2  
-          .from('approved_access')  
-          .select('approval')  
-          .eq('folder_id', normalizedFolderName)  
-          .eq('device_id', deviceId)  
-          .single();  
-        if (error && error.code !== 'PGRST116') {  
-          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);  
-        }  
-        console.log('Supabase response:', { data, error });  
-        return data && data.approval === true;  
-      } catch (error) {  
-        console.error('Lỗi kiểm tra quyền:', error);  
-        throw error;  
-      }  
+async function checkFolderAccess(folderName, deviceId) {  
+  try {  
+    const folderId = normalizeFolderName(folderName).toString(); // chuyển sang string
+    const { data, error } = await supabase2
+      .from('approved_access')
+      .select('approval')
+      .eq('folder_id', folderId)
+      .eq('device_id', deviceId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {  
+      throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);  
     }  
+
+    return data ? data.approval === true : false;  
+  } catch (error) {  
+    console.error('Lỗi checkFolderAccess:', error);  
+    return false;  
+  }  
+}
+  
   
 async function fetchFolderContents(folderId) {  
   try {  
