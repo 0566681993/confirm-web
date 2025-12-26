@@ -218,20 +218,7 @@ a.folder:hover {
     let currentImageIndex = 0;  
     let currentFolderId = '';  
     let currentFolderName = '';  
-  
-    document.addEventListener('contextmenu', e => e.preventDefault());  
-    document.addEventListener('keydown', e => {  
-      if (e.key === 'F12' ||   
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||   
-          (e.ctrlKey && e.key === 'U') ||   
-          e.key === 'PrintScreen') {  
-        e.preventDefault();  
-        alert('Chụp màn hình hoặc truy cập DevTools bị cấm!');  
-      }  
-    });  
-    document.addEventListener('copy', e => e.preventDefault());  
-    document.addEventListener('dragstart', e => e.preventDefault());  
-  
+ 
 function normalizeFolderName(name) {  
   // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"  
   const match = name.match(/^(\d+)/); // Lấy số ở đầu chuỗi  
@@ -341,17 +328,15 @@ async function fetchFolderContents(folderId) {
           const hasAccess = await checkFolderAccess(name, deviceId);  
           if (!hasAccess) {  
             currentFolderName = name;  
-            document.getElementById('requestModal').style.display = 'flex';  
+            //document.getElementById('requestModal').style.display = 'flex';  
             return;  
           }  
-  
           if (childrenDiv.style.display === 'none') {  
             childrenDiv.style.display = 'block';  
             if (!loaded) {  
               childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';  
               const items = await fetchFolderContents(folderId);  
               childrenDiv.innerHTML = '';  
-  
               if (items.length === 0) {  
                 childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';  
               } else {  
