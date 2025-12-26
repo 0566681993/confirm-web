@@ -239,73 +239,69 @@
       let loaded = false;
 
       link.onclick = async () => {
-        const deviceId = getDeviceId();
+  const deviceId = getDeviceId();
 
-        try {
-          //const hasAccess =
-           // await checkFolderAccess(name, deviceId);
+  if (childrenDiv.style.display === 'none') {
+    childrenDiv.style.display = 'block';
 
-          //if (!hasAccess) {
-          //  localStorage.setItem(
-      //      'errorFolderName',
-        //      name
-        //    );
-       //     window.location.href = 'email.html';
-       //     return;
-       //   }
+    if (!loaded) {
+      // Kiểm tra quyền trước khi load nội dung
+      try {
+        const normalizedFolderId = normalizeFolderName(name);
+        const { data, error } = await supabase2
+          .from('approved_access')
+          .select('approval')
+          .eq('folder_id', normalizedFolderId)
+          .eq('device_id', deviceId);
 
-          if (childrenDiv.style.display === 'none') {
-            childrenDiv.style.display = 'block';
+        if (error) throw error;
 
-            if (!loaded) {
-              const items =
-                await fetchFolderContents(folderId);
+        if (data.length > 0 && data[0].approval === true) {
+          alert('✅ Đã được duyệt – Mở thư mục thành công!');
+          // Có quyền → load nội dung bình thường
+        } else {
+          alert('❌ Chưa được duyệt hoặc chưa gửi yêu cầu cho truyện này.');
+          // Vẫn cho load nội dung để bạn test (nếu muốn chặn thì comment dòng dưới)
+          // Nếu muốn chặn hoàn toàn khi chưa duyệt, thêm: return; ở đây
+        }
+      } catch (err) {
+        console.error('Lỗi kiểm tra quyền:', err);
+        alert('⚠️ Lỗi kết nối Supabase: ' + err.message);
+      }
 
-              const ul = document.createElement('ul');
+      // Load danh sách file/thư mục con (luôn chạy, kể cả chưa duyệt)
+      const items = await fetchFolderContents(folderId);
+      const ul = document.createElement('ul');
 
-              items.forEach(item => {
-                if (
-                  item.mimeType ===
-                  'application/vnd.google-apps.folder'
-                ) {
-                  ul.appendChild(
-                    createFolderItem(item.name, item.id)
-                  );
-                } else {
-                  const li = document.createElement('li');
-                  const a = document.createElement('a');
+      items.forEach(item => {
+        if (item.mimeType === 'application/vnd.google-apps.folder') {
+          ul.appendChild(createFolderItem(item.name, item.id));
+        } else {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
 
-                  a.textContent =
-                    '📗 ' +
-                    item.name.replace(/\.[^/.]+$/, '');
+          a.textContent = '📗 ' + item.name.replace(/\.[^/.]+$/, '');
+          a.onclick = async () => {
+            document.getElementById('fileViewer').style.display = 'block';
+            const content = await getHtmlContent(item.id);
+            const iframe = document.getElementById('fileFrame');
+            iframe.contentDocument.open();
+            iframe.contentDocument.write(content);
+            iframe.contentDocument.close();
+          };
 
-                  a.onclick = async () => {
-                    document.getElementById(
-                      'fileViewer'
-                    ).style.display = 'block';
+          li.appendChild(a);
+          ul.appendChild(li);
+        }
+      });
 
-                    const content =
-                      await getHtmlContent(item.id);
-
-                    const iframe =
-                      document.getElementById('fileFrame');
-
-                    iframe.contentDocument.open();
-                    iframe.contentDocument.write(content);
-                    iframe.contentDocument.close();
-                  };
-
-                  li.appendChild(a);
-                  ul.appendChild(li);
-                }
-              });
-
-              childrenDiv.appendChild(ul);
-              loaded = true;
-            }
-          } else {
-            childrenDiv.style.display = 'none';
-          }
+      childrenDiv.appendChild(ul);
+      loaded = true;
+    }
+  } else {
+    childrenDiv.style.display = 'none';
+  }
+};
         } catch (e) {
           console.error(e);
         }
