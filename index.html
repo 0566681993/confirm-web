@@ -214,6 +214,9 @@ a.folder:hover {
         <button onclick="startRead()">▶️</button>
         <button onclick="pauseRead()">⏸️</button>
         <button onclick="stopRead()">⏹️</button>
+        <button onclick="speedDown()">🐢</button>
+        <button onclick="speedUp()">🐇</button>
+
       </div>
       <div class="navigation" id="navigationButtons"></div>  
     </div>  
@@ -555,6 +558,8 @@ let ttsIndex = 0;
 let ttsPaused = false;
 let ttsUtterance = null;
 let ttsCurrent = null;
+let ttsRate = 1.1; // tốc độ mặc định
+
 
 function getIframeDoc() {
   const iframe = document.getElementById("fileFrame");
@@ -640,7 +645,7 @@ function readNext() {
 
   ttsUtterance = new SpeechSynthesisUtterance(el.innerText);
   ttsUtterance.lang = "vi-VN";
-  ttsUtterance.rate = 1.1;   // 🔥 tốc độ đọc
+  ttsUtterance.rate = ttsRate;   // 🔥 tốc độ đọc
   ttsUtterance.pitch = 1;    // 🔊 cao độ giọng
 
   ttsUtterance.onend = () => {
@@ -650,6 +655,15 @@ function readNext() {
   };
 
   speechSynthesis.speak(ttsUtterance);
+}
+function speedUp() {
+  ttsRate = Math.min(1.6, ttsRate + 0.1);
+  alert("Tốc độ: " + ttsRate.toFixed(1));
+}
+
+function speedDown() {
+  ttsRate = Math.max(0.6, ttsRate - 0.1);
+  alert("Tốc độ: " + ttsRate.toFixed(1));
 }
 
 function pauseRead() {
