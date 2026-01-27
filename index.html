@@ -194,7 +194,41 @@ a.folder:hover {
     gap: 5px;  
   }  
 }
+/* ===== TTS CONTROL ===== */
+#ttsControl {
+  position: fixed;
+  bottom: 20px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  gap: 10px;
+}
 
+/* 🔥 CHỈNH KÍCH THƯỚC NÚT Ở ĐÂY */
+#ttsControl button {
+  width: 56px;        /* 👈 to/nhỏ chỉnh ở đây */
+  height: 56px;       /* 👈 */
+  font-size: 26px;    /* 👈 kích thước icon */
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+/* Khi bấm */
+#ttsControl button:active {
+  transform: scale(0.92);
+}
+
+/* Mobile: nút to hơn cho dễ bấm */
+@media (max-width: 600px) {
+  #ttsControl button {
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+  }
+}
   </style>  
 </head>  
 <body oncontextmenu="return false">  
