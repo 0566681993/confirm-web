@@ -201,32 +201,36 @@ a.folder:hover {
   right: 16px;
   z-index: 9999;
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
-/* 🔥 CHỈNH KÍCH THƯỚC NÚT Ở ĐÂY */
+/* KHÓA KÍCH THƯỚC NÚT */
 #ttsControl button {
-  width: 20px;        /* 👈 to/nhỏ chỉnh ở đây */
-  height: 20px;       /* 👈 */
-  font-size: 10px;    /* 👈 kích thước icon */
+  width: 44px;
+  height: 44px;
+  font-size: 22px;   /* 👈 QUAN TRỌNG */
+  line-height: 1;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  background: #ff4d4f;
+  color: #fff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Khi bấm */
-#ttsControl button:active {
-  transform: scale(0.92);
+/* Hover */
+#ttsControl button:hover {
+  background: #d9363e;
 }
 
-/* Mobile: nút to hơn cho dễ bấm */
+/* Mobile nhỏ */
 @media (max-width: 600px) {
   #ttsControl button {
-    width: 64px;
-    height: 64px;
-    font-size: 28px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
   }
 }
   </style>  
@@ -239,19 +243,13 @@ a.folder:hover {
     <div id="fileViewer">  
       <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>  
       <!-- ===== TTS CONTROL ===== -->
-      <div id="ttsControl" style="
-        position: fixed;
-        bottom: 20px;
-        right: 16px;
-        z-index: 9999;
-      ">
-        <button onclick="startRead()">▶️</button>
-        <button onclick="pauseRead()">⏸️</button>
-        <button onclick="stopRead()">⏹️</button>
-        <button onclick="speedDown()">🐢</button>
-        <button onclick="speedUp()">🐇</button>
-
-      </div>
+<div id="ttsControl">
+  <button onclick="startRead()">▶️</button>
+  <button onclick="pauseRead()">⏸️</button>
+  <button onclick="stopRead()">⏹️</button>
+  <button onclick="speedDown()">🐢</button>
+  <button onclick="speedUp()">🐇</button>
+</div>
       <div class="navigation" id="navigationButtons"></div>  
     </div>  
     <p class="security-notice">Hãy tôn trọng mình không lấy bản mình dịch đi bán lại !</p>  
