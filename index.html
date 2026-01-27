@@ -194,11 +194,6 @@ a.folder:hover {
     gap: 5px;  
   }  
 }
-    .reading {
-  background: #fff3a0 !important;
-  transition: background 0.25s;
-}
-
 
   </style>  
 </head>  
@@ -566,6 +561,24 @@ function getIframeDoc() {
   return iframe?.contentDocument || iframe?.contentWindow?.document;
 }
 
+/* ===== BƠM CSS TÔ MÀU VÀO IFRAME (RẤT QUAN TRỌNG) ===== */
+function injectReadingStyle() {
+  const doc = getIframeDoc();
+  if (!doc) return;
+
+  if (doc.getElementById("tts-reading-style")) return;
+
+  const style = doc.createElement("style");
+  style.id = "tts-reading-style";
+  style.innerHTML = `
+    .reading {
+      background: #fff3a0 !important;
+      transition: background 0.25s;
+    }
+  `;
+  doc.head.appendChild(style);
+}
+
 function collectIframeNodes() {
   const doc = getIframeDoc();
   if (!doc) return;
@@ -578,7 +591,7 @@ function collectIframeNodes() {
 
   doc.querySelectorAll("p, h2").forEach(el => {
     const y = el.getBoundingClientRect().top + startY;
-    if (y >= startY - 20) {
+    if (y >= startY - 20 && el.innerText.trim()) {
       ttsNodes.push(el);
     }
   });
@@ -596,6 +609,8 @@ function startRead() {
     alert("Trình duyệt không hỗ trợ đọc");
     return;
   }
+
+  injectReadingStyle(); // ⭐ DÒNG QUYẾT ĐỊNH TÔ MÀU
 
   if (speechSynthesis.speaking && ttsPaused) {
     speechSynthesis.resume();
@@ -615,7 +630,6 @@ function readNext() {
     return;
   }
 
-  const doc = getIframeDoc();
   const el = ttsNodes[ttsIndex];
 
   clearHighlight();
@@ -626,8 +640,8 @@ function readNext() {
 
   ttsUtterance = new SpeechSynthesisUtterance(el.innerText);
   ttsUtterance.lang = "vi-VN";
-  ttsUtterance.rate = 1.1;   // 🔥 chỉnh tốc độ ở đây
-  ttsUtterance.pitch = 1;
+  ttsUtterance.rate = 1.1;   // 🔥 tốc độ đọc
+  ttsUtterance.pitch = 1;    // 🔊 cao độ giọng
 
   ttsUtterance.onend = () => {
     el.classList.remove("reading");
