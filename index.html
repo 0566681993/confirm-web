@@ -194,6 +194,11 @@ a.folder:hover {
     gap: 5px;  
   }  
 }
+    .reading {
+  background: #fff3a0 !important;
+  transition: background 0.25s;
+}
+
 
   </style>  
 </head>  
@@ -204,6 +209,17 @@ a.folder:hover {
     <ul id="folderList">⏳ Đang tải...</ul>  
     <div id="fileViewer">  
       <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>  
+      <!-- ===== TTS CONTROL ===== -->
+      <div id="ttsControl" style="
+        position: fixed;
+        bottom: 20px;
+        right: 16px;
+        z-index: 9999;
+      ">
+        <button onclick="startRead()">▶️</button>
+        <button onclick="pauseRead()">⏸️</button>
+        <button onclick="stopRead()">⏹️</button>
+      </div>
       <div class="navigation" id="navigationButtons"></div>  
     </div>  
     <p class="security-notice">Hãy tôn trọng mình không lấy bản mình dịch đi bán lại !</p>  
@@ -538,5 +554,88 @@ async function fetchFolderContents(folderId) {
     });  
     document.addEventListener('copy', e => e.preventDefault());  
     document.addEventListener('dragstart', e => e.preventDefault());  
+  let nodes = [];
+  let index = 0;
+  let isPaused = false;
+  let utterance = null;
+  let currentNode = null;
+  
+  function collectNodesFromHere() {
+    nodes = [];
+    index = 0;
+    let startY = window.scrollY;
+  
+    document.querySelectorAll("p, h2").forEach(el => {
+      const y = el.getBoundingClientRect().top + window.scrollY;
+      if (y >= startY - 20) {
+        nodes.push(el);
+      }
+    });
+  }
+  
+  function clearHighlight() {
+    if (currentNode) {
+      currentNode.classList.remove("reading");
+      currentNode = null;
+    }
+  }
+  
+  function startRead() {
+    if (!window.speechSynthesis) {
+      alert("Trình duyệt không hỗ trợ đọc");
+      return;
+    }
+  
+    if (speechSynthesis.speaking && isPaused) {
+      speechSynthesis.resume();
+      isPaused = false;
+      return;
+    }
+  
+    speechSynthesis.cancel();
+    clearHighlight();
+    collectNodesFromHere();
+    readNext();
+  }
+  
+  function readNext() {
+    if (index >= nodes.length) {
+      clearHighlight();
+      return;
+    }
+  
+    clearHighlight();
+    const el = nodes[index];
+    currentNode = el;
+    el.classList.add("reading");
+  
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  
+    utterance = new SpeechSynthesisUtterance(el.innerText);
+    utterance.lang = "vi-VN";
+    utterance.rate = 1.1;
+    utterance.pitch = 1;
+  
+    utterance.onend = () => {
+      el.classList.remove("reading");
+      index++;
+      readNext();
+    };
+  
+    speechSynthesis.speak(utterance);
+  }
+  
+  function pauseRead() {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.pause();
+      isPaused = true;
+    }
+  }
+  
+  function stopRead() {
+    speechSynthesis.cancel();
+    clearHighlight();
+    isPaused = false;
+  }
   </script>  </body>  
 </html>
