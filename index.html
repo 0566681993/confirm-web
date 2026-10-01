@@ -1,484 +1,883 @@
-<!DOCTYPE html>  <html lang="vi">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>📙 TRUYỆN DỊCH 📙</title>  
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">  
-  <style>  
-    body {  
-      font-family: 'Be Vietnam Pro', 'Inter', sans-serif;  
-      padding: 15px;  
-      margin: 0;  
-      user-select: none;  
-      -webkit-user-select: none;  
-      -moz-user-select: none;  
-      -ms-user-select: none;  
-      overflow-x: hidden;  
-      background: #f0f0f0;  
-      position: relative;  
-    }  #sensitiveContent::before {  
-  content: "";  
-  position: absolute;  
-  top: 0;  
-  left: 0;  
-  width: 100%;  
-  height: 100%;  
-  background: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.2) 75%, rgba(255,255,255,0.2) 0);  
-  background-size: 20px 20px;  
-  opacity: 0.3;  
-  pointer-events: none;  
-  z-index: 1;  
-}  
+<!DOCTYPE html>
+<html lang="vi">
 
-#sensitiveContent {  
-  position: relative;  
-  z-index: 2;  
-}  
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📙 TRUYỆN DỊCH 📙</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+      padding: 15px;
+      margin: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      overflow-x: hidden;
+      min-height: 100vh;
+      color: var(--ink, #f7f8ff);
+      background: radial-gradient(circle at 8% 0%, #31205a 0, transparent 33%),
+        radial-gradient(circle at 95% 8%, #173a62 0, transparent 28%),
+        #090b14;
+      background-attachment: fixed;
+      position: relative;
+    }
 
-h2 {  
-  font-size: clamp(20px, 5vw, 24px);  
-  margin-bottom: 15px;  
-}  
+    #sensitiveContent::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 0);
+      background-size: 20px 20px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 1;
+    }
 
-ul {  
-  list-style-type: none;  
-  padding-left: 10px;  
-}  
+    #sensitiveContent {
+      position: relative;
+      z-index: 2;
+    }
 
-li {  
-  margin: 10px 0;  
-}  
+    h2 {
+      font-size: clamp(20px, 5vw, 24px);
+      margin-bottom: 15px;
+    }
 
-a.folder {  
-  font-size: clamp(16px, 4vw, 18px);  
-  color: #0066cc;  
-  font-weight: bold;  
-  cursor: pointer;  
-  display: block;  
-  text-decoration: none;  
-}  
+    ul {
+      list-style-type: none;
+      padding-left: 10px;
+    }
 
-a.folder:hover {  
-  color: #ff6600;  
-}  
+    li {
+      margin: 10px 0;
+    }
 
-.children {  
-  margin-left: 15px;  
-  font-size: clamp(14px, 3.5vw, 16px);  
-  display: none;  
-}  
+    a.folder {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: clamp(16px, 4vw, 18px);
+      color: var(--ink);
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      width: 100%;
+    }
 
-.file-link {  
-  text-decoration: none;  
-  color: red;  
-  display: block;  
-}  
+    a.folder:hover {
+      color: #c4b5fd;
+    }
 
-.file-link:hover {  
-  text-decoration: underline;  
-}  
+    .children {
+      margin-left: 15px;
+      font-size: clamp(14px, 3.5vw, 16px);
+      display: none;
+    }
 
-#fileViewer {  
-  display: none;  
-  position: fixed;  
-  top: 0;  
-  left: 0;  
-  width: 100vw;  
-  height: 100vh;  
-  background: #fff;  
-  z-index: 1000;  
-}  
+    .file-link {
+      text-decoration: none;
+      color: red;
+      display: block;
+    }
 
-#fileFrame {  
-  border: none;  
-  width: 100%;  
-  height: calc(100% - 40px);  
-  display: block;  
-}  
+    .file-link:hover {
+      text-decoration: underline;
+    }
 
-.navigation {  
-  position: fixed;  
-  bottom: 2px;  
-  left: 0;  
-  right: 0;  
-  display: flex;  
-  align-items: center;  
-  justify-content: space-between;  
-  background: transparent;  
-  padding: 5px 10px;  
-  z-index: 1001;  
-  gap: 10px;  
-}  
+    #fileViewer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fff;
+      z-index: 1000;
+    }
 
-.navigation .image-name {  
-  color: #333;  
-  font-size: clamp(10px, 2.5vw, 12px);  
-  text-align: left;  
-  white-space: nowrap;  
-  overflow: hidden;  
-  text-overflow: ellipsis;  
-  max-width: 25%;  
-  flex: 1;  
-}  
+    #fileFrame {
+      border: none;
+      width: 100%;
+      height: calc(100% - 40px);
+      display: block;
+    }
 
-.navigation button {  
-  background-color: red;  
-  color: white;  
-  border: none;  
-  padding: 5px 10px;  
-  border-radius: clamp(10px, 2vw, 5px);   
-  cursor: pointer;  
-  font-size: clamp(12px, 3vw, 14px);  
-  flex: 1;  
-  max-width: 80px;  
-}  
+    .navigation {
+      position: fixed;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+      padding: 5px 10px;
+      z-index: 1001;
+      gap: 10px;
+    }
 
-.navigation button:hover {  
-  background: #e60000;  
-}  
+    .navigation .image-name {
+      color: #333;
+      font-size: clamp(10px, 2.5vw, 12px);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 25%;
+      flex: 1;
+    }
 
-.navigation .close-button {  
-  flex: 1;  
-  text-align: center;  
-  max-width: 80px;  
-}  
+    .navigation button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: clamp(10px, 2vw, 5px);
+      cursor: pointer;
+      font-size: clamp(12px, 3vw, 14px);
+      flex: 1;
+      max-width: 80px;
+    }
 
-.error-message {  
-  color: red;  
-  font-size: clamp(10px, 3.5vw, 16px);  
-  text-align: center;  
-  margin: 10px;  
-}  
+    .navigation button:hover {
+      background: #e60000;
+    }
 
-.security-notice {  
-  color: red;  
-  font-size: 20px;  
-  text-align: center;  
-  margin-top: 10px;  
-}  
+    .navigation .close-button {
+      flex: 1;
+      text-align: center;
+      max-width: 80px;
+    }
 
-@media screen and (max-width: 600px) {  
-  body {  
-    padding: 10px;  
-  }  
+    .error-message {
+      color: #ec4899;
+      font-size: clamp(10px, 3.5vw, 16px);
+      text-align: center;
+      margin: 10px;
+    }
 
-  h2 {  
-    font-size: clamp(18px, 4.5vw, 20px);  
-  }  
+    .security-notice {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 16px;
+      text-align: center;
+      margin-top: 10px;
+    }
 
-  a.folder {  
-    font-size: clamp(14px, 3.8vw, 16px);  
-  }  
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
 
-  .children {  
-    margin-left: 10px;  
-    font-size: clamp(12px, 3.2vw, 14px);  
-  }  
+      h2 {
+        font-size: clamp(18px, 4.5vw, 20px);
+      }
 
-  .navigation button {  
-    padding: 4px 8px;  
-    font-size: clamp(10px, 2.8vw, 12px);  
-    max-width: 60px;  
-  }  
+      a.folder {
+        font-size: clamp(14px, 3.8vw, 16px);
+      }
 
-  .navigation .image-name {  
-    font-size: clamp(8px, 2.2vw, 10px);  
-    max-width: 20%;  
-  }  
+      .children {
+        margin-left: 10px;
+        font-size: clamp(12px, 3.2vw, 14px);
+      }
 
-  .navigation .close-button {  
-    max-width: 60px;  
-  }  
+      .navigation button {
+        padding: 4px 8px;
+        font-size: clamp(10px, 2.8vw, 12px);
+        max-width: 60px;
+      }
 
-  .navigation {  
-    gap: 5px;  
-  }  
-}
-/* ===== TTS CONTROL ===== */
-#ttsControl {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 9999;
-  display: flex;
-  gap: 8px;
-}
+      .navigation .image-name {
+        font-size: clamp(8px, 2.2vw, 10px);
+        max-width: 20%;
+      }
 
-/* KHÓA KÍCH THƯỚC NÚT */
-#ttsControl button {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;   /* 👈 QUAN TRỌNG */
-  line-height: 1;
-  border-radius: 30%;
-  border: none;
-  background: #fff3a0;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+      .navigation .close-button {
+        max-width: 60px;
+      }
 
-/* Hover */
-#ttsControl button:hover {
-  background: #d9363e;
-}
+      .navigation {
+        gap: 5px;
+      }
+    }
 
-/* Mobile nhỏ */
-@media (max-width: 600px) {
-  #ttsControl button {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-}
-  </style>  
-</head>  
-<body oncontextmenu="return false">  
-  <div id="sensitiveContent">  
-    <h2> 📙 DANH SÁCH TRUYỆN DỊCH 📙</h2>
-    <h3> ☎️ Zalo: 0566681993 </h3>
-    <ul id="folderList">⏳ Đang tải...</ul>  
-    <div id="fileViewer">  
-      <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>  
+    /* ===== TTS CONTROL ===== */
+    #ttsControl {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* KHÓA KÍCH THƯỚC NÚT */
+    #ttsControl button {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      /* 👈 QUAN TRỌNG */
+      line-height: 1;
+      border-radius: 30%;
+      border: none;
+      background: #fff3a0;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Hover */
+    #ttsControl button:hover {
+      background: #d9363e;
+    }
+
+    /* Mobile nhỏ */
+    @media (max-width: 600px) {
+      #ttsControl button {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+    }
+
+    /* ===== MODERN UI STYLES ===== */
+    :root {
+      --bg: #090b14;
+      --panel: #121728;
+      --line: rgba(255, 255, 255, .1);
+      --ink: #f7f8ff;
+      --muted: #a7adc3;
+      --brand: #a78bfa;
+      --brand-glow: rgba(167, 139, 250, .35);
+      --card-bg: linear-gradient(135deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .03));
+      --border: rgba(255, 255, 255, .1);
+      --shadow: 0 8px 20px rgba(0, 0, 0, .25);
+      --primary: #a78bfa;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .brand p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.7;
+      color: var(--muted);
+    }
+
+    .contact {
+      display: inline-block;
+      padding: 8px 15px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .contact:hover {
+      background: rgba(255, 255, 255, .14);
+      transform: translateX(-2px);
+    }
+
+    .library-toolbar {
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: rgba(8, 11, 23, .55);
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(167, 139, 250, .13);
+    }
+
+    .search-box span {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 16px;
+      margin-left: 10px;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    #folderList {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    .story-card {
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform .2s, border-color .2s, background .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+
+    .story-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--brand);
+      background: rgba(167, 139, 250, .14);
+      box-shadow: 0 8px 24px var(--brand-glow);
+    }
+
+    .story-cover {
+      width: 85px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .story-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+    .story-title {
+      font-size: 16px;
+      font-weight: 600;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .is-loading {
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+
+      100% {
+        opacity: 0.6;
+      }
+    }
+
+    .access-toast {
+      background: rgba(8, 11, 23, .85);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, .5);
+      border: 1px solid rgba(167, 139, 250, .3);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .toast-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a78bfa;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .recent-section {
+      margin-bottom: 25px;
+    }
+
+    .recent-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 16px 20px;
+      background: linear-gradient(100deg, rgba(139, 92, 246, .32), rgba(236, 72, 153, .2));
+      border-radius: 16px;
+      border: 1px solid rgba(167, 139, 250, .55);
+      box-shadow: 0 10px 25px rgba(139, 92, 246, .18);
+    }
+
+    .recent-main {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .recent-badge-icon {
+      font-size: 32px;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .recent-label {
+      font-size: 11px;
+      color: #ede9fe;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .18);
+      display: inline-block;
+    }
+
+    .recent-story-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 8px 0 4px 0;
+      line-height: 1.2;
+    }
+
+    .recent-chapter-title {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .recent-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-continue-read {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      transition: 0.2s;
+    }
+
+    .btn-continue-read:hover {
+      box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-all-chapters {
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--ink);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-all-chapters:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .children ul {
+      padding-left: 0;
+    }
+
+    .children li {
+      list-style: none;
+      margin: 5px 0;
+    }
+
+    .children a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 15px;
+    }
+  </style>
+</head>
+
+<body oncontextmenu="return false">
+  <div id="sensitiveContent">
+    <style>
+      @media (max-width: 768px) {
+        .security-notice-inline {
+          display: none;
+        }
+      }
+    </style>
+    <header class="site-header">
+      <div class="brand">
+        <div>
+          <h1>Truyện Dịch</h1>
+          <p>Thư viện truyện dành cho bạn</p>
+        </div>
+      </div>
+      <div class="security-notice-inline"
+        style="flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: #ec4899; padding: 0 15px;">Hãy tôn
+        trọng mình, không lấy bản mình dịch đi bán lại!</div>
+      <a class="contact" style="white-space: nowrap;" href="https://zalo.me/0566681993" target="_blank"
+        rel="noopener">Liên hệ Zalo</a>
+    </header>
+
+    <section class="library-toolbar">
+      <label class="search-box"><span>⌕</span><input id="storySearch" type="search" placeholder="Tìm tên truyện..."
+          autocomplete="off"></label>
+    </section>
+
+    <div id="accessToast" class="access-toast" role="status" style="display:none;"><span class="toast-dot"></span><span
+        id="accessToastText">Đang kiểm tra quyền...</span></div>
+
+    <section id="recentReadingSection" class="recent-section" style="display:none;"></section>
+
+    <ul id="folderList">⏳ Đang tải...</ul>
+    <div id="fileViewer">
+      <iframe id="fileFrame" sandbox="allow-same-origin allow-scripts"></iframe>
       <!-- ===== TTS CONTROL ===== -->
-<div id="ttsControl">
-  <button onclick="startRead()">▶️</button>
-  <button onclick="pauseRead()">⏸️</button>
-  <button onclick="stopRead()">⏹️</button>
-  <button onclick="speedDown()">🐢</button>
-  <button onclick="speedUp()">🐇</button>
-</div>
-      <div class="navigation" id="navigationButtons"></div>  
-    </div>  
-    <p class="security-notice">Hãy tôn trọng mình không lấy bản mình dịch đi bán lại !</p>  
-  </div>    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    <script>  
-    const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';  
-    const ROOT_FOLDER_ID = '1-Q-ctnxeZpbYUCcqpTOnuY2jw2LIiHJZ';  
-    const SUPABASE_URL = 'https://rtxdvcvzkepogytpnvsi.supabase.co';  
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU';  
-  
-    const supabasea = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  
-  
-    let currentImages = [];  
-    let currentImageIndex = 0;  
-    let currentFolderId = '';  
-    let currentFolderName = '';  
-    
-  
-function normalizeFolderName(name) {  
-  // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"  
-  const match = name.match(/^(\d+)/); // Lấy số ở đầu chuỗi  
-  return match ? parseInt(match[1]) : Infinity; // Trả về số hoặc Infinity nếu không có số  
-}  
-  
-    function getDeviceId() {  
-      let deviceId = localStorage.getItem('deviceId');  
-      if (!deviceId) {  
-        deviceId = crypto.randomUUID();  
-        localStorage.setItem('deviceId', deviceId);  
-      }  
-      return deviceId;  
-    }  
-  
-    async function checkFolderAccess(folderName, deviceId) {  
-      try {  
-        const normalizedFolderName = normalizeFolderName(folderName);  
+      <div id="ttsControl">
+        <button onclick="startRead()">▶️</button>
+        <button onclick="pauseRead()">⏸️</button>
+        <button onclick="stopRead()">⏹️</button>
+        <button onclick="speedDown()">🐢</button>
+        <button onclick="speedUp()">🐇</button>
+      </div>
+      <div class="navigation" id="navigationButtons"></div>
+    </div>
+  </div>
+  <script>
+    const API_KEY = 'AIzaSyB88SNWBpeBPRkg1KdgXc0K5rEOoih0zOM';
+    const ROOT_FOLDER_ID = '1-Q-ctnxeZpbYUCcqpTOnuY2jw2LIiHJZ';
+    // Dan URL Web App sau khi trien khai Code.gs.
+    const ACCESS_API_URL = 'https://script.google.com/macros/s/AKfycbxxe8gmlmrI6PBpr1bChBnAQFtuLzCyRfOQen8SKItnDl8sa2bIM5P5QH7EVZ_JX7cM/exec';
+    // Giu tuong thich voi ham kiem tra quyen ben duoi, nhung du lieu lay tu Apps Script.
+    const accessApi = {
+      from: () => ({
+        select: () => {
+          const query = {};
+          return {
+            eq(field, value) { query[field] = value; return this; },
+            async single() {
+              if (ACCESS_API_URL.startsWith('PASTE_')) throw new Error('Chua cau hinh URL Google Apps Script.');
+              const url = new URL(ACCESS_API_URL);
+              url.search = new URLSearchParams({ action: 'check', device_id: query.device_id, folder_id: query.folder_id });
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('Khong the kiem tra quyen doc.');
+              const result = await response.json();
+              if (!result.ok) throw new Error(result.message || 'Khong the kiem tra quyen doc.');
+              return { data: result.approved ? { approval: true } : null, error: null };
+            }
+          };
+        }
+      })
+    };
+
+    let currentImages = [];
+    let currentImageIndex = 0;
+    let currentFolderId = '';
+    let currentFolderName = '';
+
+
+    function normalizeFolderName(name) {
+      // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"  
+      const match = name.match(/^(\d+)/); // Lấy số ở đầu chuỗi  
+      return match ? parseInt(match[1]) : Infinity; // Trả về số hoặc Infinity nếu không có số  
+    }
+
+    function getDeviceId() {
+      try {
+        let deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) {
+          deviceId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : 'device-' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+          localStorage.setItem('deviceId', deviceId);
+        }
+        return deviceId;
+      } catch (e) {
+        // Fallback for Incognito where localStorage is blocked
+        return 'device-' + Math.random().toString(36).substring(2);
+      }
+    }
+
+    async function checkFolderAccess(folderName, deviceId) {
+      try {
+        const normalizedFolderName = normalizeFolderName(folderName);
         //console.log('Checking access for:', { folderName: normalizedFolderName, deviceId });  
-        const { data, error } = await supabasea  
-          .from('approved_access')  
-          .select('approval')  
-          .eq('folder_id', normalizedFolderName)  
-          .eq('device_id', deviceId)  
-          .single();  
-        if (error && error.code !== 'PGRST116') {  
-          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);  
-        }  
-        console.log('Supabase response:', { data, error });  
-        return data && data.approval === true;  
-      } catch (error) {  
-        console.error('Lỗi kiểm tra quyền:', error);  
-        throw error;  
-      }  
-    }  
-  
-async function fetchFolderContents(folderId) {  
-  try {  
-    const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=100`;  
-    const res = await fetch(url);  
-    if (!res.ok) {  
-      const errorText = await res.text();  
-      throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);  
-    }  
-    const data = await res.json();  
-    if (!data.files) {  
-      throw new Error('Không nhận được danh sách file/thư mục.');  
-    }  
-    // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc  
-    return data.files.sort((a, b) => {  
-      const getPrefixNumber = (name) => {  
-        const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -  
-        return match ? parseInt(match[1]) : 0; // Trả về số, mặc định 0 nếu không có  
-      };  
-      const getBracketNumber = (name) => {  
-        const match = name.match(/\d+$/); // Trích xuất số trong ngoặc cuối cùng  
-        return match ? parseInt(match[0].replace(/[()]/g, "")) : null; // Trả về null nếu không có ngoặc  
-      };  
-      const prefixA = getPrefixNumber(a.name);  
-      const prefixB = getPrefixNumber(b.name);  
-      if (prefixA !== prefixB) {  
-        return prefixB - prefixA; // Sắp xếp theo số trước -  
-      }  
-      // Nếu số trước - bằng nhau, xử lý ngoặc  
-      const bracketA = getBracketNumber(a.name);  
-      const bracketB = getBracketNumber(b.name);  
-      if (bracketA === null && bracketB === null) return 0; // Cả hai không có ngoặc, giữ nguyên  
-      if (bracketA === null) return 1; // a không có ngoặc, xếp sau b  
-      if (bracketB === null) return -1; // b không có ngoặc, xếp sau a  
-      return bracketA - bracketB; // So sánh số trong ngoặc  
-    });  
-  } catch (error) {  
-    console.error('Lỗi khi tải dữ liệu:', error);  
-    const folderList = document.getElementById('folderList');  
-    folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;  
-    return [];  
-  }  
-}  
-    async function getHtmlContent(fileId) {  
-      try {  
-        const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;  
-        const res = await fetch(url);  
-        if (!res.ok) throw new Error('Không thể tải nội dung file.');  
-        return await res.text();  
-      } catch (error) {  
-        console.error('Lỗi khi tải nội dung HTML:', error);  
-        return `<p class="error-message">Lỗi tải nội dung: ${error.message}</p>`;  
-      }  
-    }  
-  
-    function createFolderItem(name, folderId) {  
-      const li = document.createElement('li');  
-      const link = document.createElement('a');  
-      link.className = 'folder';  
-      link.textContent = `📚 ${name}`;  
-      link.removeAttribute('href');   
-      link.style.cursor = 'pointer';  
-  
-      const childrenDiv = document.createElement('div');  
-      childrenDiv.className = 'children';  
-  
-      let loaded = false;  
-  
-      link.onclick = async () => {  
-        const deviceId = getDeviceId();  
-        try {  
-          const hasAccess = await checkFolderAccess(name, deviceId);  
-          if (!hasAccess) {  
-            currentFolderName = name;  
-            document.getElementById('requestModal').style.display = 'flex';  
-            return;  
-          }  
-  
-          if (childrenDiv.style.display === 'none') {  
-            childrenDiv.style.display = 'block';  
-            if (!loaded) {  
-              childrenDiv.innerHTML = '<li>⏳ Đang tải...</li>';  
-              const items = await fetchFolderContents(folderId);  
-              childrenDiv.innerHTML = '';  
-  
-              if (items.length === 0) {  
-                childrenDiv.innerHTML = '<i>Thư mục rỗng.</i>';  
-              } else {  
-                const subUl = document.createElement('ul');  
-                items.forEach(item => {  
-                  if (item.mimeType === 'application/vnd.google-apps.folder') {  
-                    subUl.appendChild(createFolderItem(item.name, item.id));  
-                  } else {  
-                    const fileLi = document.createElement('li');  
-                    const a = document.createElement('a');  
-                    const fileNameWithoutExtension = item.name.replace(/\.[^/.]+$/, ""); // Loại bỏ đuôi file  
-                    a.textContent = `📗 ${fileNameWithoutExtension}`;  
-                    //a.textContent = `📗 ${item.name}`;  
-                    a.href = '#';  
-                    a.className = 'file-link';  
-                    a.onclick = async () => {  
-                      if (item.name.toLowerCase().endsWith('.html')) {  
-                        document.getElementById('fileViewer').style.display = 'block';  
-                        const content = await getHtmlContent(item.id);  
-                        const iframeDoc = document.getElementById('fileFrame').contentDocument || document.getElementById('fileFrame').contentWindow.document;  
-                        iframeDoc.open();  
-                        iframeDoc.write(content);  
-                        iframeDoc.close();  
-                        document.getElementById('navigationButtons').innerHTML = `  
-                          <div class="close-button">  
-                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
-                          </div>  
-                        `;  
-                      } else if (isImageFile(item.name)) {  
-                        showImageInViewer(folderId, item.id);  
-                      } else {  
-                        document.getElementById('fileViewer').style.display = 'block';  
-                        document.getElementById('fileFrame').src = getFileViewerURL(item);  
-                        document.getElementById('navigationButtons').innerHTML = `  
-                          <div class="close-button">  
-                            <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
-                          </div>  
-                        `;  
-                      }  
-                    };  
-                    fileLi.appendChild(a);  
-                    subUl.appendChild(fileLi);  
-                  }  
-                });  
-                childrenDiv.appendChild(subUl);  
-              }  
-              loaded = true;  
-            }  
-          } else {  
-            childrenDiv.style.display = 'none';  
-          }  
-        } catch (error) {  
-          console.error('Lỗi khi mở thư mục:', error);  
-          localStorage.setItem('errorFolderName', name);  
-          window.location.href = 'email.html';  
-        }  
-      };  
-  
-      li.appendChild(link);  
-      li.appendChild(childrenDiv);  
-      return li;  
-    }  
-  
-    function isImageFile(name) {  
-      const lowerName = name.toLowerCase();  
-      return lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');  
-    }  
-  
-    async function showImageInViewer(folderId, selectedImageId) {  
-      try {  
-        currentFolderId = folderId;  
-        currentImages = (await fetchFolderContents(folderId)).filter(item => isImageFile(item.name));  
+        const { data, error } = await accessApi
+          .from('approved_access')
+          .select('approval')
+          .eq('folder_id', normalizedFolderName)
+          .eq('device_id', deviceId)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          throw new Error(`Lỗi kiểm tra quyền: ${error.message}`);
+        }
+        console.log('Access API response:', { data, error });
+        return data && data.approval === true;
+      } catch (error) {
+        console.error('Lỗi kiểm tra quyền:', error);
+        throw error;
+      }
+    }
+
+    async function fetchFolderContents(folderId) {
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType,thumbnailLink)&pageSize=1000&_=${Date.now()}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Lỗi API Google Drive: ${res.status} ${res.statusText}. Chi tiết: ${errorText}`);
+        }
+        const data = await res.json();
+        if (!data.files) {
+          throw new Error('Không nhận được danh sách file/thư mục.');
+        }
+        // Sắp xếp tùy chỉnh: số trước - trước, rồi số trong ngoặc  
+        return data.files.sort((a, b) => {
+          const getPrefixNumber = (name) => {
+            const match = name.match(/^(\d+)/); // Trích xuất số ở đầu chuỗi trước dấu -  
+            return match ? parseInt(match[1]) : 0; // Trả về số, mặc định 0 nếu không có  
+          };
+          const getBracketNumber = (name) => {
+            const match = name.match(/\d+$/); // Trích xuất số trong ngoặc cuối cùng  
+            return match ? parseInt(match[0].replace(/[()]/g, "")) : null; // Trả về null nếu không có ngoặc  
+          };
+          const prefixA = getPrefixNumber(a.name);
+          const prefixB = getPrefixNumber(b.name);
+          if (prefixA !== prefixB) {
+            return prefixB - prefixA; // Sắp xếp theo số trước -  
+          }
+          // Nếu số trước - bằng nhau, xử lý ngoặc  
+          const bracketA = getBracketNumber(a.name);
+          const bracketB = getBracketNumber(b.name);
+          if (bracketA === null && bracketB === null) return 0; // Cả hai không có ngoặc, giữ nguyên  
+          if (bracketA === null) return 1; // a không có ngoặc, xếp sau b  
+          if (bracketB === null) return -1; // b không có ngoặc, xếp sau a  
+          return bracketA - bracketB; // So sánh số trong ngoặc  
+        });
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = `<li class="error-message">Lỗi: ${error.message}</li>`;
+        return [];
+      }
+    }
+    async function getHtmlContent(fileId) {
+      try {
+        const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Không thể tải nội dung file.');
+        return await res.text();
+      } catch (error) {
+        console.error('Lỗi khi tải nội dung HTML:', error);
+        return `<p class="error-message">Lỗi tải nội dung: ${error.message}</p>`;
+      }
+    }
+
+    function createFolderItem(name, folderId) {
+      const li = document.createElement('li');
+      li.className = 'story-card';
+      const link = document.createElement('a');
+      link.className = 'folder';
+      link.style.cursor = 'pointer';
+      link.href = '#';
+
+      const cover = document.createElement('span');
+      cover.className = 'story-cover is-loading';
+      cover.textContent = '📚';
+      const title = document.createElement('span');
+      title.className = 'story-title';
+      title.textContent = name;
+
+      link.append(cover, title);
+      observeCover(folderId, cover);
+
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'children';
+
+      let loaded = false;
+
+      link.onclick = async (event) => {
+        event.preventDefault();
+        const deviceId = getDeviceId();
+        const toast = document.getElementById('accessToast');
+        const toastText = document.getElementById('accessToastText');
+        try {
+          if (toast) {
+            toastText.textContent = 'Đang kiểm tra quyền...';
+            toast.style.display = 'flex';
+          }
+          const hasAccess = await checkFolderAccess(name, deviceId);
+
+          if (!hasAccess) {
+            if (toast) toast.style.display = 'none';
+            localStorage.setItem('errorFolderName', name);
+            window.location.href = 'email.html';
+            return;
+          }
+
+          if (toast) {
+            toastText.textContent = 'Thành công! Đang chuyển trang...';
+          }
+          const params = new URLSearchParams({ folderId, name });
+          window.location.href = `chapters.html?${params}`;
+
+        } catch (error) {
+          if (toast) toast.style.display = 'none';
+          console.error('Lỗi khi mở thư mục:', error);
+          localStorage.setItem('errorFolderName', name);
+          window.location.href = 'email.html';
+        }
+      };
+
+      li.appendChild(link);
+      return li;
+    }
+
+    function isImageFile(file) {
+      if (file.mimeType && file.mimeType.startsWith('image/')) return true;
+      const lowerName = (file.name || '').toLowerCase();
+      return lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');
+    }
+
+    function observeCover(folderId, cover) {
+      const doFetch = async () => {
+        try {
+          const files = await fetchFolderContents(folderId);
+          let image = files.find(file => isImageFile(file) && file.name.toLowerCase().includes('icon'));
+          if (!image) {
+            image = files.find(file => isImageFile(file));
+          }
+          if (!image) { cover.classList.remove('is-loading'); return; }
           
-        if (currentImages.length === 0) {  
-          document.getElementById('fileViewer').style.display = 'block';  
-          document.getElementById('fileFrame').src = '';  
+          let link = image.thumbnailLink ? image.thumbnailLink.replace(/=s\d+/, '=s600') : `https://drive.google.com/thumbnail?id=${image.id}&sz=w600`;
+          try { localStorage.setItem('cover_link_' + folderId, link); } catch(e){}
+          renderImg(link, false);
+        } catch (e) {
+          cover.classList.remove('is-loading'); 
+          console.error("Fetch cover err:", e);
+        }
+      };
+
+      const renderImg = (src, isCached) => {
+          const img = new Image();
+          img.alt = 'Ảnh bìa truyện';
+          img.src = src;
+          img.onload = () => { cover.textContent = ''; cover.classList.remove('is-loading'); cover.appendChild(img); };
+          img.onerror = () => { 
+             if (isCached) {
+                 try { localStorage.removeItem('cover_link_' + folderId); } catch(e){}
+                 doFetch();
+             } else {
+                 cover.classList.remove('is-loading');
+             }
+          };
+      };
+
+      const load = async () => {
+         let cached = null;
+         try { cached = localStorage.getItem('cover_link_' + folderId); } catch(e){}
+         if (cached) {
+            renderImg(cached, true);
+         } else {
+            await doFetch();
+         }
+      };
+
+      if (!('IntersectionObserver' in window)) return load();
+      const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { observer.disconnect(); load(); }
+      }, { rootMargin: '180px' });
+      observer.observe(cover);
+    }
+
+    async function showImageInViewer(folderId, selectedImageId) {
+      try {
+        currentFolderId = folderId;
+        currentImages = (await fetchFolderContents(folderId)).filter(item => isImageFile(item));
+
+        if (currentImages.length === 0) {
+          document.getElementById('fileViewer').style.display = 'block';
+          document.getElementById('fileFrame').src = '';
           document.getElementById('navigationButtons').innerHTML = `  
             <p class="error-message">Không có ảnh trong thư mục.</p>  
             <div class="close-button">  
               <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>  
             </div>  
-          `;  
-          return;  
-        }  
-  
-        currentImageIndex = currentImages.findIndex(item => item.id === selectedImageId);  
-        if (currentImageIndex === -1) {  
-          currentImageIndex = 0;  
-        }  
-  
-        document.getElementById('fileViewer').style.display = 'block';  
-        document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);  
+          `;
+          return;
+        }
+
+        currentImageIndex = currentImages.findIndex(item => item.id === selectedImageId);
+        if (currentImageIndex === -1) {
+          currentImageIndex = 0;
+        }
+
+        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
         document.getElementById('navigationButtons').innerHTML = `  
           <span class="image-name">${currentImages[currentImageIndex].name}</span>  
           <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>  
@@ -486,29 +885,29 @@ async function fetchFolderContents(folderId) {
           <div class="close-button">  
             <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>  
           </div>  
-        `;  
-      } catch (error) {  
-        console.error('Lỗi khi tải ảnh:', error);  
-        document.getElementById('fileViewer').style.display = 'block';  
-        document.getElementById('fileFrame').src = '';  
+        `;
+      } catch (error) {
+        console.error('Lỗi khi tải ảnh:', error);
+        document.getElementById('fileViewer').style.display = 'block';
+        document.getElementById('fileFrame').src = '';
         document.getElementById('navigationButtons').innerHTML = `  
           <p class="error-message">Lỗi khi tải ảnh: ${error.message}</p>  
           <div class="close-button">  
             <button onclick="document.getElementById('fileViewer').style.display='none'">X</button>  
           </div>  
-        `;  
-      }  
-    }  
-  
-    function navigateImage(direction) {  
-      currentImageIndex += direction;  
-      if (currentImageIndex < 0) {  
-        currentImageIndex = currentImages.length - 1;  
-      } else if (currentImageIndex >= currentImages.length) {  
-        currentImageIndex = 0;  
-      }  
-  
-      document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);  
+        `;
+      }
+    }
+
+    function navigateImage(direction) {
+      currentImageIndex += direction;
+      if (currentImageIndex < 0) {
+        currentImageIndex = currentImages.length - 1;
+      } else if (currentImageIndex >= currentImages.length) {
+        currentImageIndex = 0;
+      }
+
+      document.getElementById('fileFrame').src = getFileViewerURL(currentImages[currentImageIndex]);
       document.getElementById('navigationButtons').innerHTML = `  
         <span class="image-name">${currentImages[currentImageIndex].name}</span>  
         <button ${currentImages.length <= 1 ? 'disabled' : ''} onclick="navigateImage(-1)"><<</button>  
@@ -516,200 +915,276 @@ async function fetchFolderContents(folderId) {
         <div class="close-button">  
           <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
         </div>  
-      `;  
-    }  
-  
-    function getFileViewerURL(file) {  
-      const fileId = file.id;  
-      const name = file.name.toLowerCase();  
-      if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {  
-        return `https://drive.google.com/file/d/${fileId}/preview`;  
-      }  
-      return `https://drive.google.com/file/d/${fileId}/view`;  
-    }  
-  
-    async function init() {  
-      try {  
-        const folderList = document.getElementById('folderList');  
-        folderList.innerHTML = 'Đang tải...';  
-  
-        const items = await fetchFolderContents(ROOT_FOLDER_ID);  
-        folderList.innerHTML = '';  
-  
-        if (items.length === 0) {  
-          folderList.innerHTML = '<li class="error-message">Thư mục rỗng hoặc không có quyền truy cập.</li>';  
-        } else {  
-          items.forEach(item => {  
-            if (item.mimeType === 'application/vnd.google-apps.folder') {  
-              folderList.appendChild(createFolderItem(item.name, item.id));  
-            } else {  
-              const fileLi = document.createElement('li');  
-              const a = document.createElement('a');  
-              a.textContent = `📄 ${item.name}`;  
-              a.href = '#';  
-              a.className = 'file-link';  
-              a.onclick = () => {  
-                if (isImageFile(item.name)) {  
-                  showImageInViewer(ROOT_FOLDER_ID, item.id);  
-                } else {  
-                  document.getElementById('fileViewer').style.display = 'block';  
-                  document.getElementById('fileFrame').src = getFileViewerURL(item);  
+      `;
+    }
+
+    function getFileViewerURL(file) {
+      const fileId = file.id;
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+      return `https://drive.google.com/file/d/${fileId}/view`;
+    }
+
+    async function init() {
+      try {
+        const folderList = document.getElementById('folderList');
+        folderList.innerHTML = 'Đang tải...';
+
+        const items = await fetchFolderContents(ROOT_FOLDER_ID);
+        folderList.innerHTML = '';
+
+        if (items.length === 0) {
+          folderList.innerHTML = '<li class="error-message">Thư mục rỗng hoặc không có quyền truy cập.</li>';
+        } else {
+          items.forEach(item => {
+            if (item.mimeType === 'application/vnd.google-apps.folder') {
+              folderList.appendChild(createFolderItem(item.name, item.id));
+            } else {
+              const fileLi = document.createElement('li');
+              const a = document.createElement('a');
+              a.textContent = `📄 ${item.name}`;
+              a.href = '#';
+              a.className = 'file-link';
+              a.onclick = () => {
+                if (isImageFile(item.name)) {
+                  showImageInViewer(ROOT_FOLDER_ID, item.id);
+                } else {
+                  document.getElementById('fileViewer').style.display = 'block';
+                  document.getElementById('fileFrame').src = getFileViewerURL(item);
                   document.getElementById('navigationButtons').innerHTML = `  
                     <div class="close-button">  
                       <button onclick="document.getElementById('fileViewer').style.display='none'; document.getElementById('fileFrame').src=''; document.getElementById('fileFrame').contentDocument.open(); document.getElementById('fileFrame').contentDocument.close()">Đóng</button>  
                     </div>  
-                  `;  
-                }  
-              };  
-              fileLi.appendChild(a);  
-              folderList.appendChild(fileLi);  
-            }  
-          });  
-        }  
-      } catch (error) {  
-        console.error('Lỗi khởi tạo :', error);  
-        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;  
-      }  
-    }  
+                  `;
+                }
+              };
+              fileLi.appendChild(a);
+              folderList.appendChild(fileLi);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khởi tạo :', error);
+        document.getElementById('folderList').innerHTML = `<li class="error-message">Lỗi khởi tạo: ${error.message}</li>`;
+      }
+    }
+
+    function stripExtension(name) { return (name || '').replace(/\.[^/.]+$/, ''); }
+
+    async function handleContinueReading(folderId, name, autoRead = true) {
+      const deviceId = getDeviceId();
+      try {
+        const hasAccess = await checkFolderAccess(name, deviceId);
+        if (!hasAccess) {
+          localStorage.setItem('errorFolderName', name);
+          window.location.href = 'email.html';
+          return;
+        }
+        const params = new URLSearchParams({ folderId, name });
+        if (autoRead) params.set('autoRead', '1');
+        window.location.href = `chapters.html?${params}`;
+      } catch (err) { alert('Lỗi kiểm tra quyền: ' + err.message); }
+    }
+
+    function renderRecentReading() {
+      const container = document.getElementById('recentReadingSection');
+      if (!container) return;
+      let recent = null;
+      try {
+        const history = JSON.parse(localStorage.getItem('truyen:history') || '[]');
+        if (Array.isArray(history) && history.length > 0) recent = history[0];
+      } catch (_) { }
+
+      if (!recent) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('truyen:last:')) {
+            try {
+              const val = JSON.parse(localStorage.getItem(key));
+              if (val && val.id) { recent = val; break; }
+            } catch (_) { }
+          }
+        }
+      }
+
+      if (!recent || !recent.storyFolderId) { container.style.display = 'none'; return; }
+      const sName = recent.storyName || 'Truyện đang đọc';
+      const cName = stripExtension(recent.name) || 'Chương đang đọc';
+      container.innerHTML = `
+        <div class="recent-card">
+          <div class="recent-main">
+            <div class="recent-badge-icon">📖</div>
+            <div class="recent-details">
+              <div class="recent-label">Tiếp tục đọc gần đây</div>
+              <div class="recent-story-title">${sName}</div>
+              <div class="recent-chapter-title">Đang đọc: <strong>${cName}</strong></div>
+            </div>
+          </div>
+          <div class="recent-actions">
+            <button id="btnRecentContinue" class="btn-continue-read" type="button">Đọc tiếp ▶</button>
+            <button id="btnRecentChapters" class="btn-all-chapters" type="button">Xem tất cả chương</button>
+          </div>
+        </div>
+      `;
+      container.style.display = 'block';
+      document.getElementById('btnRecentContinue').onclick = () => handleContinueReading(recent.storyFolderId, sName, true);
+      document.getElementById('btnRecentChapters').onclick = () => handleContinueReading(recent.storyFolderId, sName, false);
+    }
+
     init();
-    document.addEventListener('contextmenu', e => e.preventDefault());  
-    document.addEventListener('keydown', e => {  
-      if (e.key === 'F12' ||   
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||   
-          (e.ctrlKey && e.key === 'U') ||   
-          e.key === 'PrintScreen') {  
-        e.preventDefault();  
-        alert('Chụp màn hình hoặc truy cập DevTools bị cấm!');  
-      }  
-    });  
-    document.addEventListener('copy', e => e.preventDefault());  
-    document.addEventListener('dragstart', e => e.preventDefault());  
-// ===== TTS ĐỌC NỘI DUNG IFRAME =====
-let ttsNodes = [];
-let ttsIndex = 0;
-let ttsPaused = false;
-let ttsUtterance = null;
-let ttsCurrent = null;
-let ttsRate = 1.1; // tốc độ mặc định
+
+    document.getElementById('storySearch').addEventListener('input', event => {
+      const keyword = event.target.value.trim().toLocaleLowerCase('vi');
+      document.querySelectorAll('#folderList > .story-card').forEach(card => {
+        const title = card.querySelector('.story-title')?.textContent.toLocaleLowerCase('vi') || '';
+        card.style.display = !keyword || title.includes(keyword) ? '' : 'none';
+      });
+    });
+
+    renderRecentReading();
+    window.addEventListener('pageshow', renderRecentReading);
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        e.key === 'PrintScreen') {
+        e.preventDefault();
+        alert('Chụp màn hình hoặc truy cập DevTools bị cấm!');
+      }
+    });
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    // ===== TTS ĐỌC NỘI DUNG IFRAME =====
+    let ttsNodes = [];
+    let ttsIndex = 0;
+    let ttsPaused = false;
+    let ttsUtterance = null;
+    let ttsCurrent = null;
+    let ttsRate = 1.1; // tốc độ mặc định
 
 
-function getIframeDoc() {
-  const iframe = document.getElementById("fileFrame");
-  return iframe?.contentDocument || iframe?.contentWindow?.document;
-}
+    function getIframeDoc() {
+      const iframe = document.getElementById("fileFrame");
+      return iframe?.contentDocument || iframe?.contentWindow?.document;
+    }
 
-/* ===== BƠM CSS TÔ MÀU VÀO IFRAME (RẤT QUAN TRỌNG) ===== */
-function injectReadingStyle() {
-  const doc = getIframeDoc();
-  if (!doc) return;
+    /* ===== BƠM CSS TÔ MÀU VÀO IFRAME (RẤT QUAN TRỌNG) ===== */
+    function injectReadingStyle() {
+      const doc = getIframeDoc();
+      if (!doc) return;
 
-  if (doc.getElementById("tts-reading-style")) return;
+      if (doc.getElementById("tts-reading-style")) return;
 
-  const style = doc.createElement("style");
-  style.id = "tts-reading-style";
-  style.innerHTML = `
+      const style = doc.createElement("style");
+      style.id = "tts-reading-style";
+      style.innerHTML = `
     .reading {
       background: #fff3a0 !important;
       transition: background 0.25s;
     }
   `;
-  doc.head.appendChild(style);
-}
-
-function collectIframeNodes() {
-  const doc = getIframeDoc();
-  if (!doc) return;
-
-  ttsNodes = [];
-  ttsIndex = 0;
-
-  const startY =
-    doc.documentElement.scrollTop || doc.body.scrollTop || 0;
-
-  doc.querySelectorAll("p, h2").forEach(el => {
-    const y = el.getBoundingClientRect().top + startY;
-    if (y >= startY - 20 && el.innerText.trim()) {
-      ttsNodes.push(el);
+      doc.head.appendChild(style);
     }
-  });
-}
 
-function clearHighlight() {
-  if (ttsCurrent) {
-    ttsCurrent.classList.remove("reading");
-    ttsCurrent = null;
-  }
-}
+    function collectIframeNodes() {
+      const doc = getIframeDoc();
+      if (!doc) return;
 
-function startRead() {
-  if (!window.speechSynthesis) {
-    alert("Trình duyệt không hỗ trợ đọc");
-    return;
-  }
+      ttsNodes = [];
+      ttsIndex = 0;
 
-  injectReadingStyle(); // ⭐ DÒNG QUYẾT ĐỊNH TÔ MÀU
+      const startY =
+        doc.documentElement.scrollTop || doc.body.scrollTop || 0;
 
-  if (speechSynthesis.speaking && ttsPaused) {
-    speechSynthesis.resume();
-    ttsPaused = false;
-    return;
-  }
+      doc.querySelectorAll("p, h2").forEach(el => {
+        const y = el.getBoundingClientRect().top + startY;
+        if (y >= startY - 20 && el.innerText.trim()) {
+          ttsNodes.push(el);
+        }
+      });
+    }
 
-  speechSynthesis.cancel();
-  clearHighlight();
-  collectIframeNodes();
-  readNext();
-}
+    function clearHighlight() {
+      if (ttsCurrent) {
+        ttsCurrent.classList.remove("reading");
+        ttsCurrent = null;
+      }
+    }
 
-function readNext() {
-  if (ttsIndex >= ttsNodes.length) {
-    clearHighlight();
-    return;
-  }
+    function startRead() {
+      if (!window.speechSynthesis) {
+        alert("Trình duyệt không hỗ trợ đọc");
+        return;
+      }
 
-  const el = ttsNodes[ttsIndex];
+      injectReadingStyle(); // ⭐ DÒNG QUYẾT ĐỊNH TÔ MÀU
 
-  clearHighlight();
-  ttsCurrent = el;
-  el.classList.add("reading");
+      if (speechSynthesis.speaking && ttsPaused) {
+        speechSynthesis.resume();
+        ttsPaused = false;
+        return;
+      }
 
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
+      speechSynthesis.cancel();
+      clearHighlight();
+      collectIframeNodes();
+      readNext();
+    }
 
-  ttsUtterance = new SpeechSynthesisUtterance(el.innerText);
-  ttsUtterance.lang = "vi-VN";
-  ttsUtterance.rate = ttsRate;   // 🔥 tốc độ đọc
-  ttsUtterance.pitch = 1;    // 🔊 cao độ giọng
+    function readNext() {
+      if (ttsIndex >= ttsNodes.length) {
+        clearHighlight();
+        return;
+      }
 
-  ttsUtterance.onend = () => {
-    el.classList.remove("reading");
-    ttsIndex++;
-    readNext();
-  };
+      const el = ttsNodes[ttsIndex];
 
-  speechSynthesis.speak(ttsUtterance);
-}
-function speedUp() {
-  ttsRate = Math.min(1.6, ttsRate + 0.1);
-  //alert("Tốc độ: " + ttsRate.toFixed(1));
-}
+      clearHighlight();
+      ttsCurrent = el;
+      el.classList.add("reading");
 
-function speedDown() {
-  ttsRate = Math.max(0.6, ttsRate - 0.1);
-  //alert("Tốc độ: " + ttsRate.toFixed(1));
-}
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-function pauseRead() {
-  if (speechSynthesis.speaking) {
-    speechSynthesis.pause();
-    ttsPaused = true;
-  }
-}
+      ttsUtterance = new SpeechSynthesisUtterance(el.innerText);
+      ttsUtterance.lang = "vi-VN";
+      ttsUtterance.rate = ttsRate;   // 🔥 tốc độ đọc
+      ttsUtterance.pitch = 1;    // 🔊 cao độ giọng
 
-function stopRead() {
-  speechSynthesis.cancel();
-  clearHighlight();
-  ttsPaused = false;
-}
+      ttsUtterance.onend = () => {
+        el.classList.remove("reading");
+        ttsIndex++;
+        readNext();
+      };
 
-  </script>  </body>  
+      speechSynthesis.speak(ttsUtterance);
+    }
+    function speedUp() {
+      ttsRate = Math.min(1.6, ttsRate + 0.1);
+      //alert("Tốc độ: " + ttsRate.toFixed(1));
+    }
+
+    function speedDown() {
+      ttsRate = Math.max(0.6, ttsRate - 0.1);
+      //alert("Tốc độ: " + ttsRate.toFixed(1));
+    }
+
+    function pauseRead() {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.pause();
+        ttsPaused = true;
+      }
+    }
+
+    function stopRead() {
+      speechSynthesis.cancel();
+      clearHighlight();
+      ttsPaused = false;
+    }
+
+  </script>
+</body>
+
 </html>
