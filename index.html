@@ -642,10 +642,14 @@
     let currentFolderName = '';
 
 
+    function storyNumber(name) {
+      if (!name) return '';
+      const match = String(name).match(/^(\d+)/);
+      return match ? match[1] : String(name).trim();
+    }
+
     function normalizeFolderName(name) {
-      // Trích xuất số đầu tiên từ định dạng "số-số" hoặc "số.tên"  
-      const match = name.match(/^(\d+)/); // Lấy số ở đầu chuỗi  
-      return match ? parseInt(match[1]) : Infinity; // Trả về số hoặc Infinity nếu không có số  
+      return storyNumber(name);
     }
 
     function getDeviceId() {
@@ -762,6 +766,16 @@
 
       link.onclick = async (event) => {
         event.preventDefault();
+        const sNum = storyNumber(name);
+        const lastCheck = Number(sessionStorage.getItem('access_' + sNum) || 0);
+
+        // Nếu vừa kiểm tra quyền thành công trong vòng 10 phút -> Vào luôn không cần gọi lại API
+        if (lastCheck && (Date.now() - lastCheck < 10 * 60 * 1000)) {
+          const params = new URLSearchParams({ folderId, name });
+          window.location.href = `chapters.html?${params}`;
+          return;
+        }
+
         const deviceId = getDeviceId();
         const toast = document.getElementById('accessToast');
         const toastText = document.getElementById('accessToastText');
@@ -782,14 +796,18 @@
           if (toast) {
             toastText.textContent = 'Thành công! Đang chuyển trang...';
           }
+          sessionStorage.setItem('access_' + sNum, String(Date.now()));
           const params = new URLSearchParams({ folderId, name });
           window.location.href = `chapters.html?${params}`;
 
         } catch (error) {
-          if (toast) toast.style.display = 'none';
           console.error('Lỗi khi mở thư mục:', error);
-          localStorage.setItem('errorFolderName', name);
-          window.location.href = 'email.html';
+          if (toast) {
+            toastText.textContent = '❌ Lỗi kết nối: ' + (error.message || 'Không thể kiểm tra');
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+          } else {
+            alert('Lỗi khi kiểm tra quyền: ' + (error.message || 'Không thể kiểm tra'));
+          }
         }
       };
 
@@ -974,18 +992,41 @@
     function stripExtension(name) { return (name || '').replace(/\.[^/.]+$/, ''); }
 
     async function handleContinueReading(folderId, name, autoRead = true) {
+      const sNum = storyNumber(name);
+      const lastCheck = Number(sessionStorage.getItem('access_' + sNum) || 0);
+      if (lastCheck && (Date.now() - lastCheck < 10 * 60 * 1000)) {
+        const params = new URLSearchParams({ folderId, name });
+        if (autoRead) params.set('autoRead', '1');
+        window.location.href = `chapters.html?${params}`;
+        return;
+      }
+
       const deviceId = getDeviceId();
+      const toast = document.getElementById('accessToast');
+      const toastText = document.getElementById('accessToastText');
       try {
+        if (toast) {
+          toastText.textContent = 'Đang kiểm tra quyền...';
+          toast.style.display = 'flex';
+        }
         const hasAccess = await checkFolderAccess(name, deviceId);
         if (!hasAccess) {
+          if (toast) toast.style.display = 'none';
           localStorage.setItem('errorFolderName', name);
           window.location.href = 'email.html';
           return;
         }
+        if (toast) {
+          toastText.textContent = 'Thành công! Đang chuyển trang...';
+        }
+        sessionStorage.setItem('access_' + sNum, String(Date.now()));
         const params = new URLSearchParams({ folderId, name });
         if (autoRead) params.set('autoRead', '1');
         window.location.href = `chapters.html?${params}`;
-      } catch (err) { alert('Lỗi kiểm tra quyền: ' + err.message); }
+      } catch (err) {
+        if (toast) toast.style.display = 'none';
+        alert('Lỗi kiểm tra quyền: ' + err.message);
+      }
     }
 
     function renderRecentReading() {
@@ -1045,6 +1086,21 @@
 
     renderRecentReading();
     window.addEventListener('pageshow', renderRecentReading);
+
+    // Hiển thị thông báo khôi phục thành công nếu vừa chuyển từ email.html
+    const restoredNotice = sessionStorage.getItem('restoredNotice');
+    if (restoredNotice) {
+      sessionStorage.removeItem('restoredNotice');
+      const toast = document.getElementById('accessToast');
+      const toastText = document.getElementById('accessToastText');
+      if (toast && toastText) {
+        toastText.textContent = restoredNotice;
+        toast.style.display = 'flex';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 4000);
+      }
+    }
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
       if (e.key === 'F12' ||
@@ -1076,17 +1132,35 @@
       const doc = getIframeDoc();
       if (!doc) return;
 
-      if (doc.getElementById("tts-reading-style")) return;
-
-      const style = doc.createElement("style");
-      style.id = "tts-reading-style";
+      let style = doc.getElementById("tts-reading-style");
+      if (!style) {
+        style = doc.createElement("style");
+        style.id = "tts-reading-style";
+        (doc.head || doc.documentElement || doc.body).appendChild(style);
+      }
       style.innerHTML = `
-    .reading {
-      background: #fff3a0 !important;
-      transition: background 0.25s;
-    }
-  `;
-      doc.head.appendChild(style);
+        .reading,
+        p.reading,
+        h2.reading,
+        h3.reading,
+        div.reading,
+        span.reading {
+          background-color: #fef08a !important;
+          color: #172554 !important;
+          border-radius: 4px !important;
+          box-shadow: 0 0 0 4px #fef08a !important;
+          display: block !important;
+          transition: background-color 0.2s, color 0.2s;
+        }
+        .reading *,
+        .reading span,
+        .reading font,
+        .reading strong,
+        .reading em {
+          background-color: transparent !important;
+          color: #172554 !important;
+        }
+      `;
     }
 
     function collectIframeNodes() {
@@ -1096,23 +1170,39 @@
       ttsNodes = [];
       ttsIndex = 0;
 
-      const startY =
-        doc.documentElement.scrollTop || doc.body.scrollTop || 0;
+      doc.querySelectorAll("p, h2, h3").forEach(el => {
+        const text = el.innerText?.trim() || "";
+        const lower = text.toLowerCase();
+        if (lower.includes('dịch bởi') || lower.includes('tôn trọng mình') || lower.includes('bán lại') || lower.includes('bản quyền')) return;
 
-      doc.querySelectorAll("p, h2").forEach(el => {
-        const y = el.getBoundingClientRect().top + startY;
-        if (y >= startY - 20 && el.innerText.trim()) {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom >= 10 && text) {
           ttsNodes.push(el);
         }
       });
+
+      if (ttsNodes.length === 0) {
+        doc.querySelectorAll("p, h2, h3").forEach(el => {
+          const text = el.innerText?.trim() || "";
+          const lower = text.toLowerCase();
+          if (lower.includes('dịch bởi') || lower.includes('tôn trọng mình') || lower.includes('bán lại') || lower.includes('bản quyền')) return;
+          if (text) ttsNodes.push(el);
+        });
+      }
     }
 
     function clearHighlight() {
       if (ttsCurrent) {
         ttsCurrent.classList.remove("reading");
+        ttsCurrent.style.removeProperty("background-color");
+        ttsCurrent.style.removeProperty("color");
+        ttsCurrent.style.removeProperty("border-radius");
+        ttsCurrent.style.removeProperty("box-shadow");
         ttsCurrent = null;
       }
     }
+
+    let ttsPlaying = false;
 
     function startRead() {
       if (!window.speechSynthesis) {
@@ -1120,23 +1210,27 @@
         return;
       }
 
-      injectReadingStyle(); // ⭐ DÒNG QUYẾT ĐỊNH TÔ MÀU
-
-      if (speechSynthesis.speaking && ttsPaused) {
-        speechSynthesis.resume();
+      // Nếu đang tạm dừng thì tiếp tục phát
+      if (ttsPlaying && ttsPaused) {
         ttsPaused = false;
+        readNext();
         return;
       }
 
-      speechSynthesis.cancel();
-      clearHighlight();
+      stopRead();
+      ttsPlaying = true;
+      ttsPaused = false;
+
+      injectReadingStyle(); // ⭐ DÒNG QUYẾT ĐỊNH TÔ MÀU
       collectIframeNodes();
       readNext();
     }
 
     function readNext() {
-      if (ttsIndex >= ttsNodes.length) {
-        clearHighlight();
+      if (!ttsPlaying || ttsPaused || ttsIndex >= ttsNodes.length) {
+        if (!ttsPaused) {
+          stopRead();
+        }
         return;
       }
 
@@ -1146,42 +1240,113 @@
       ttsCurrent = el;
       el.classList.add("reading");
 
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Trực tiếp gán inline style chống đè CSS
+      el.style.setProperty('background-color', '#fef08a', 'important');
+      el.style.setProperty('color', '#172554', 'important');
+      el.style.setProperty('border-radius', '4px', 'important');
+      el.style.setProperty('box-shadow', '0 0 0 4px #fef08a', 'important');
 
-      ttsUtterance = new SpeechSynthesisUtterance(el.innerText);
+      try {
+        const frame = document.getElementById("fileFrame");
+        const doc = getIframeDoc();
+        const docView = doc?.defaultView || frame?.contentWindow;
+        if (docView) {
+          const rect = el.getBoundingClientRect();
+          const currentY = docView.scrollY || doc?.documentElement?.scrollTop || doc?.body?.scrollTop || 0;
+          const targetY = currentY + rect.top - (docView.innerHeight / 2) + (rect.height / 2);
+          docView.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+        } else {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      } catch (_) {
+        try { el.scrollIntoView(true); } catch (_) {}
+      }
+
+      let textToRead = el.innerText || "";
+      textToRead = textToRead.replace(/TÂN-0566681993/gi, '')
+        .replace(/0566681993/g, '')
+        .replace(/Tân/gi, '')
+        .replace(/watermark/gi, '');
+
+      if (!textToRead.trim()) {
+        clearHighlight();
+        ttsIndex++;
+        readNext();
+        return;
+      }
+
+      if (ttsUtterance) {
+        ttsUtterance.onend = null;
+        ttsUtterance.onerror = null;
+      }
+
+      ttsUtterance = new SpeechSynthesisUtterance(textToRead);
       ttsUtterance.lang = "vi-VN";
       ttsUtterance.rate = ttsRate;   // 🔥 tốc độ đọc
       ttsUtterance.pitch = 1;    // 🔊 cao độ giọng
+      window._activeUtterance = ttsUtterance;
 
       ttsUtterance.onend = () => {
-        el.classList.remove("reading");
+        if (!ttsPlaying || ttsPaused) return;
+        clearHighlight();
         ttsIndex++;
         readNext();
       };
 
-      speechSynthesis.speak(ttsUtterance);
+      ttsUtterance.onerror = () => {
+        if (!ttsPlaying || ttsPaused) return;
+        clearHighlight();
+        ttsIndex++;
+        readNext();
+      };
+
+      try {
+        speechSynthesis.speak(ttsUtterance);
+      } catch (err) {
+        console.error('Lỗi khi gọi speak:', err);
+      }
     }
+
     function speedUp() {
-      ttsRate = Math.min(1.6, ttsRate + 0.1);
-      //alert("Tốc độ: " + ttsRate.toFixed(1));
+      ttsRate = Math.min(1.6, Number((ttsRate + 0.1).toFixed(2)));
     }
 
     function speedDown() {
-      ttsRate = Math.max(0.6, ttsRate - 0.1);
-      //alert("Tốc độ: " + ttsRate.toFixed(1));
+      ttsRate = Math.max(0.6, Number((ttsRate - 0.1).toFixed(2)));
     }
 
     function pauseRead() {
-      if (speechSynthesis.speaking) {
-        speechSynthesis.pause();
+      if (!ttsPlaying) return;
+      if (ttsPaused) {
+        ttsPaused = false;
+        readNext();
+      } else {
         ttsPaused = true;
+        if (ttsUtterance) {
+          ttsUtterance.onend = null;
+          ttsUtterance.onerror = null;
+        }
+        if (window.speechSynthesis) {
+          try { window.speechSynthesis.cancel(); } catch (_) {}
+        }
       }
     }
 
     function stopRead() {
-      speechSynthesis.cancel();
-      clearHighlight();
+      ttsPlaying = false;
       ttsPaused = false;
+      if (ttsUtterance) {
+        ttsUtterance.onend = null;
+        ttsUtterance.onerror = null;
+        ttsUtterance = null;
+      }
+      window._activeUtterance = null;
+      if (window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch (_) {}
+      }
+      clearHighlight();
+      ttsNodes = [];
+      ttsIndex = 0;
     }
 
   </script>
