@@ -3,119 +3,248 @@
 <head>
 <meta charset="UTF-8">
 <title>GỬI ĐĂNG KÝ ĐỌC TRUYỆN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #090b14;
+    --panel: #121728;
+    --line: rgba(255,255,255,.1);
+    --ink: #f7f8ff;
+    --muted: #a7adc3;
+    --brand: #a78bfa;
+    --card-bg: linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.03));
+    --border: rgba(255,255,255,.1);
+    --shadow: 0 8px 32px rgba(0,0,0,.3);
+  }
   body{
-    font-family: Arial;
+    font-family: 'Inter', 'Be Vietnam Pro', Arial, sans-serif;
     padding:20px;
-    background:#f4f4f4;
+    margin: 0;
+    color: var(--ink);
+    background: radial-gradient(circle at 8% 0%, #31205a 0, transparent 33%),
+                radial-gradient(circle at 95% 8%, #173a62 0, transparent 28%),
+                var(--bg);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 500px;
+  }
+  h2 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 25px;
+    line-height: 1.4;
+    color: var(--brand);
+    text-shadow: 0 0 10px rgba(167,139,250,.3);
   }
   .box{
-    background:#fff;
-    padding:15px;
-    border-radius:6px;
-    margin:10px 0;
+    background: var(--card-bg);
+    padding:18px;
+    border-radius:16px;
+    margin:15px 0;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
     word-break: break-all;
+    backdrop-filter: blur(10px);
+  }
+  .box b {
+    color: var(--brand);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .box div {
+    font-size: 15px;
+    color: var(--ink);
   }
   input{
-    padding:8px;
-    font-size:14px;
+    padding:12px;
+    font-size:15px;
     margin-top:5px;
     width:100%;
-    max-width:360px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: rgba(8,11,23,.55);
+    color: var(--ink);
     box-sizing:border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px rgba(167,139,250,.13);
   }
   .button-group{
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 15px;
     flex-wrap: wrap;
   }
   button{
-    padding:8px 16px;
-    font-size:14px;
+    padding:12px 20px;
+    font-size:15px;
+    font-weight: 600;
     border:none;
-    border-radius:4px;
+    border-radius:12px;
     cursor:pointer;
     flex: 1;
-    min-width: 120px;
+    min-width: 140px;
+    transition: 0.2s;
   }
   button.send{
-    background:#ff4d4d;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
     color:#fff;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.3);
   }
-  button.send:hover{ background:#e60000; }
+  button.send:hover{ transform: translateY(-2px); box-shadow: 0 6px 16px rgba(139,92,246,0.5); }
   
   button.back{
-    background:#28a745; /* màu xanh lá đẹp */
-    color:#fff;
+    background: rgba(255,255,255,0.08);
+    color: var(--ink);
+    border: 1px solid var(--border);
   }
-  button.back:hover{ background:#218838; }
+  button.back:hover{ background: rgba(255,255,255,0.15); transform: translateY(-2px); }
   
   #status{ 
-    margin-top:10px; 
-    font-weight:bold; 
+    margin-top:15px; 
+    font-weight:600;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .access-toast {
+    background: rgba(8, 11, 23, .9);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .5);
+    border: 1px solid rgba(167, 139, 250, .4);
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+  }
+
+  .toast-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: pulse 1s infinite alternate;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(1.2); opacity: 1; }
   }
 </style>
 </head>
 
 <body>
-
-<h2>🧪 GỬI YÊU CẦU ĐỌC TRUYỆN : LIÊN HỆ 0566681993 KHI GỬI XONG</h2>
-
-<div class="box">
-  <b>Mã thiết bị:</b>
-  <div id="deviceId">...</div>
+<div id="accessToast" class="access-toast" role="status" style="display:none;">
+  <span class="toast-dot"></span>
+  <span id="accessToastText">Khôi phục thành công! Hãy vào lại truyện.</span>
 </div>
 
-<div class="box">
-  <b>Trình duyệt:</b>
-  <div id="browserName">...</div>
-</div>
+<div class="container">
+  <h2>🧪 GỬI YÊU CẦU ĐỌC TRUYỆN<br>LIÊN HỆ ZALO 0566681993 SAU KHI GỬI</h2>
 
-<div class="box">
-  <b>Tên truyện:</b>
-  <div id="folderNameDisplay">...</div>
-</div>
-
-<div class="box">
-  <b>Email / Tên:</b>
-  <input type="email" id="email" placeholder="Nhập email hoặc tên">
-  
-  <div class="button-group">
-    <button class="send" onclick="sendRequest()">📨 Gửi yêu cầu</button>
-    <button class="back" onclick="window.location.href='index.html'">⬅️ Quay lại</button>
+  <div class="box">
+    <b>Mã thiết bị:</b>
+    <div id="deviceId">...</div>
   </div>
-  
-  <div id="status"></div>
+
+  <div class="box">
+    <b>Tên truyện:</b>
+    <div id="folderNameDisplay">...</div>
+  </div>
+
+  <div class="box">
+    <b>Thông tin liên hệ:</b>
+    <input type="email" id="email" placeholder="Nhập Email hoặc Tên của bạn">
+    <input type="tel" id="phone" placeholder="Nhập Số điện thoại">
+    
+    <div class="button-group">
+      <button class="send" onclick="sendRequest()">📨 Gửi yêu cầu</button>
+      <button class="back" onclick="recoverRequest()">🔄 Khôi phục quyền</button>
+      <button class="back" onclick="window.location.href='index.html'" style="flex-basis: 100%; margin-top: 5px;">⬅️ Quay lại danh sách truyện</button>
+    </div>
+    
+    <div id="status"></div>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ========= CONFIG ========= */
-const SUPABASE_URL = "https://rtxdvcvzkepogytpnvsi.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGR2Y3Z6a2Vwb2d5dHBudnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzI1NzksImV4cCI6MjA2ODg0ODU3OX0.SG_q8rnfAA7LAFoYYQyPsUFZPqsh1C13GbkGln4Z3JU";
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbxxe8gmlmrI6PBpr1bChBnAQFtuLzCyRfOQen8SKItnDl8sa2bIM5P5QH7EVZ_JX7cM/exec";
+const accessApiClient = {
+  from: () => ({
+    select: () => {
+      const query = {};
+      return {
+        eq(field, value) { query[field] = value; return this; },
+        async single() {
+          if (ACCESS_API_URL.startsWith("PASTE_")) throw new Error("Chua cau hinh URL Google Apps Script.");
+          const url = new URL(ACCESS_API_URL);
+          url.search = new URLSearchParams({ action: "lookup", device_id: query.device_id, folder_id: query.folder_id });
+          const response = await fetch(url);
+          const result = await response.json();
+          if (!response.ok || !result.ok) throw new Error(result.message || "Khong the kiem tra yeu cau.");
+          return result.exists ? { data: { id: "existing" }, error: null } : { data: null, error: { code: "PGRST116" } };
+        }
+      };
+    },
+    async insert(record) {
+      if (ACCESS_API_URL.startsWith("PASTE_")) throw new Error("Chua cau hinh URL Google Apps Script.");
+      const response = await fetch(ACCESS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ action: "request", folder_name: record.folder_name, folder_id: record.folder_id, device_id: record.device_id, email: record.name_email, phone: record.phone_number, browser: record.phone_number })
+      });
+      const result = await response.json();
+      return !response.ok || !result.ok ? { error: new Error(result.message || "Gui yeu cau that bai") } : { error: null };
+    },
+    async recover(record) {
+      if (ACCESS_API_URL.startsWith("PASTE_")) throw new Error("Chua cau hinh URL Google Apps Script.");
+      const response = await fetch(ACCESS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ action: "recover", folder_id: record.folder_id, device_id: record.device_id, email: record.name_email, phone: record.phone_number, browser: record.phone_number })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || "Khoi phuc that bai");
+      return result;
+    }
+  })
+};
 
 /* ========= DEVICE ID ========= */
 function getDeviceId(){
-  let id = localStorage.getItem("deviceId");
-  if(!id){
-    id = crypto.randomUUID();
-    localStorage.setItem("deviceId", id);
-  }
-  return id;
-}
-
-/* ========= BROWSER ========= */
-function getBrowser(){
-  const ua = navigator.userAgent;
-  let name = "Unknown";
-  if(ua.includes("Edg")) name = "Microsoft Edge";
-  else if(ua.includes("Chrome")) name = "Google Chrome";
-  else if(ua.includes("Firefox")) name = "Mozilla Firefox";
-  else if(ua.includes("Safari")) name = "Safari";
-  return { name, ua };
+  try {
+    let id = localStorage.getItem("deviceId");
+    if(!id){
+      id = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : 'device-' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem("deviceId", id);
+    }
+    return id;
+  } catch(e) { return 'device-' + Math.random().toString(36).substring(2); }
 }
 
 /* ========= FOLDER ID ========= */
@@ -126,21 +255,20 @@ function extractFolderId(folderName){
 
 /* ========= HIỂN THỊ ========= */
 const deviceId = getDeviceId();
-const browser = getBrowser();
 const folderName = localStorage.getItem("errorFolderName") || "KHÔNG RÕ THƯ MỤC";
 const folderId = extractFolderId(folderName);
 
 document.getElementById("deviceId").textContent = deviceId;
-document.getElementById("browserName").textContent = browser.name;
 document.getElementById("folderNameDisplay").textContent = folderName;
 
 /* ========= SEND ========= */
 async function sendRequest(){
   const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
   const status = document.getElementById("status");
 
-  if(!email){
-    status.textContent = "❌ Vui lòng nhập email.";
+  if(!email && !phone){
+    status.textContent = "❌ Vui lòng nhập Email hoặc SĐT.";
     status.style.color = "red";
     return;
   }
@@ -149,8 +277,7 @@ async function sendRequest(){
   status.style.color = "#333";
 
   try {
-    // ===== 1️⃣ Kiểm tra bản ghi đã tồn tại =====
-    const { data: existingRecord, error: checkError } = await supabaseClient
+    const { data: existingRecord, error: checkError } = await accessApiClient
       .from("approved_access")
       .select("id")
       .eq("device_id", deviceId)
@@ -167,40 +294,67 @@ async function sendRequest(){
       return;
     }
 
-    // ===== 2️⃣ Ghi mới nếu chưa tồn tại =====
-    const { error: insertError } = await supabaseClient
+    const { error: insertError } = await accessApiClient
       .from("approved_access")
       .insert({
         device_id: deviceId,
         name_email: email,
         folder_name: folderName,
         folder_id: folderId,
-        brower_name: browser.name,
+        phone_number: phone,
         approval: false
       });
 
     if (insertError) throw insertError;
 
-    // ===== 3️⃣ Gửi email =====
-    const res = await fetch(
-      "https://script.google.com/macros/s/AKfycbyfTdvfQPiuHr2IJg2LncLemvY-H0kyiSDL4ykSVui7Mvd_D97z1V3lvFpyvJ30liJs/exec",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          folder_name: folderName,
-          folder_id: folderId,
-          device_id: deviceId,
-          email: email,
-          browser: browser.name
-        })
-      }
-    );
-
-    if(!res.ok) throw new Error("Gửi email thất bại");
-
     status.textContent = "✅ Đã gửi yêu cầu thành công! hãy nhắn zalo 0566681993 để mình biết nhé !";
     status.style.color = "green";
+
+  } catch(err){
+    console.error(err);
+    status.textContent = "❌ Lỗi: " + err.message;
+    status.style.color = "red";
+  }
+}
+
+/* ========= RECOVER ========= */
+async function recoverRequest(){
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const status = document.getElementById("status");
+
+  if(!email && !phone){
+    status.textContent = "❌ Vui lòng nhập Email hoặc SĐT đã đăng ký để khôi phục.";
+    status.style.color = "red";
+    return;
+  }
+
+  status.textContent = "⏳ Đang kiểm tra dữ liệu...";
+  status.style.color = "#333";
+
+  try {
+    const result = await accessApiClient.from("approved_access").recover({
+      device_id: deviceId,
+      folder_id: folderId,
+      name_email: email,
+      phone_number: phone
+    });
+
+    status.textContent = "✅ Khôi phục thành công! Đang chuyển về trang chủ...";
+    status.style.color = "#10b981";
+    
+    const toast = document.getElementById("accessToast");
+    const toastText = document.getElementById("accessToastText");
+    if (toast && toastText) {
+      toastText.textContent = "Khôi phục thành công! Hãy vào lại truyện.";
+      toast.style.display = "flex";
+    }
+
+    sessionStorage.setItem("restoredNotice", "Khôi phục thành công! Hãy vào lại truyện.");
+
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 1800);
 
   } catch(err){
     console.error(err);
@@ -218,8 +372,5 @@ document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.key.toUpperCase() === 'U') e.preventDefault();
 });
 </script>
-
 </body>
 </html>
-
-
